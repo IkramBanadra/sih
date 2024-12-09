@@ -1,8 +1,8 @@
 import PostOfficeSidebar from '../components/PostOfficeSidebar'
 import { Route, Routes } from "react-router-dom";
-import OverviewPage from "./OverviewPage";
-import LifePage from "./LifePage";
-import ImageUploadPage from "./ImageUploadPage";
+import OverviewPage from './OverviewPage';
+import LifePage from './LifePage';
+import ImageUploadPage from './ImageUploadPage';
 
 const AdminDashboard = () => {
   return (

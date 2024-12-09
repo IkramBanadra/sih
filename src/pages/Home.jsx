@@ -12,6 +12,7 @@ import {
   XIcon,
 } from "lucide-react";
 import Navigation from "../components/Navigation";
+import Swal from "sweetalert2";
 
 function Home() {
   const [formData, setFormData] = useState({
@@ -68,7 +69,7 @@ function Home() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert("Message sent! We will get back to you soon.");
+    Swal.fire("Message sent! We will get back to you soon.");
     setFormData({
       name: "",
       email: "",

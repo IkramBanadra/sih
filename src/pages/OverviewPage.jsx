@@ -2,8 +2,6 @@ import { motion } from "framer-motion";
 import { BarChart2, ShoppingBag, Users, Zap } from "lucide-react";
 import Header from "../components/common/Header";
 import StatCard from "../components/common/StatCard";
-import WasteOverviewChart from "../components/overview/WasteOverviewCharts";
-import WasteDistributionChart from "../components/overview/WasteDistributionChart";
 
 const OverviewPage = () => {
   return (
@@ -40,8 +38,8 @@ const OverviewPage = () => {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <WasteDistributionChart />
-          <WasteOverviewChart />
+          {/* <WasteDistributionChart />
+          <WasteOverviewChart /> */}
         </div>
       </main>
     </div>

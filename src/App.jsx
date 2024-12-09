@@ -5,6 +5,7 @@ import PostOfficeRequest from "./pages/PostOfficeRequest";
 import AdminDashboard from "./pages/AdminDashboard";
 import PostOfficeDashboard from "./pages/PostOfficeDashboard";
 import Home from "./pages/Home";
+import ImageProcess from "./pages/ImageProcess";
 
 function App() {
 
@@ -17,6 +18,7 @@ function App() {
           <Route path="/postOfficeLogin" element={<PostOfficeLogin />} />
           <Route path="/postOfficeDashboard" element={<PostOfficeDashboard />} />
           <Route path="/accessReq" element={<PostOfficeRequest />} />
+          <Route path="/imgProcess" element={<ImageProcess />} />
         </Routes>
         
     </>
