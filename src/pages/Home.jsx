@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-// import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 import {
   ArrowRightIcon,
   CloudIcon,
@@ -8,11 +8,12 @@ import {
   MailIcon,
   PhoneIcon,
   MapPinIcon,
-  SunIcon,
-  MoonIcon,
+  MenuIcon,
+  XIcon,
 } from "lucide-react";
+import Navigation from "../components/Navigation";
 
-function HomePage() {
+function Home() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -21,8 +22,8 @@ function HomePage() {
 
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Dark mode and section tracking setup
   useEffect(() => {
     const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)");
     setIsDarkMode(prefersDarkMode.matches);
@@ -37,7 +38,6 @@ function HomePage() {
     document.body.classList.toggle("dark", isDarkMode);
   }, [isDarkMode]);
 
-  // Intersection Observer for active section
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -81,81 +81,110 @@ function HomePage() {
     if (section) {
       section.scrollIntoView({ behavior: "smooth" });
       setActiveSection(sectionId);
+      setMobileMenuOpen(false);
     }
   };
 
-  return (
-    <div
-      className={`
-      ${isDarkMode ? "dark bg-gray-900 text-gray-100" : "bg-white"}
-      transition-colors duration-300 ease-in-out
-    `}
-    >
-      {/* Dark Mode Toggle */}
-      <button
-        onClick={() => setIsDarkMode(!isDarkMode)}
-        className="fixed top-4 right-6 z-50 bg-gray-200 dark:bg-gray-700 p-2 rounded-full shadow-lg"
-      >
-        {isDarkMode ? (
-          <SunIcon className="text-yellow-500" />
-        ) : (
-          <MoonIcon className="text-gray-800" />
-        )}
-      </button>
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        delayChildren: 0.3,
+        staggerChildren: 0.2,
+      },
+    },
+  };
 
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md z-40 shadow-sm">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+      },
+    },
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className={`
+        ${
+          isDarkMode
+            ? "dark bg-gray-900 text-gray-100"
+            : "bg-white text-gray-900"
+        }
+        transition-colors duration-300 ease-in-out min-h-screen
+      `}
+    >
+      <motion.nav
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 120 }}
+        className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md z-40 shadow-sm"
+      >
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <div className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100">
             ProductName
           </div>
-          <div className="space-x-6">
-            {["home", "features", "about", "contact"].map((section) => (
-              <button
-                key={section}
-                onClick={() => scrollToSection(section)}
-                className={`
-                  capitalize text-gray-600 dark:text-gray-300 
-                  hover:text-gray-900 dark:hover:text-white 
-                  transition
-                  ${
-                    activeSection === section
-                      ? "font-bold text-blue-600 dark:text-blue-400"
-                      : ""
-                  }
-                `}
-              >
-                {section}
-              </button>
-            ))}
+
+          <div className="flex items-center">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden block text-gray-600 dark:text-gray-300"
+            >
+              {mobileMenuOpen ? <XIcon /> : <MenuIcon />}
+            </button>
+
+            <Navigation
+              mobileMenuOpen={mobileMenuOpen}
+              activeSection={activeSection}
+              scrollToSection={scrollToSection}
+              setMobileMenuOpen={setMobileMenuOpen}
+            />
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
-      {/* Home Section */}
-      <section
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={containerVariants}
         id="home"
-        className="min-h-screen pt-20 container mx-auto px-6 flex items-center"
+        className="min-h-screen pt-20 container mx-auto px-4 sm:px-6 lg:px-8 flex items-center"
       >
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <h1 className="text-5xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <motion.div
+            variants={itemVariants}
+            className="space-y-4 sm:space-y-6 text-center md:text-left"
+          >
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
               Transform Your Digital Experience
             </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300">
               Innovative solutions that blend cutting-edge technology with
               seamless user experiences.
             </p>
-            <button
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg 
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="mx-auto md:mx-0 bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg 
               flex items-center space-x-2 hover:bg-blue-700 transition"
             >
               <span>Get Started</span>
-              <ArrowRightIcon className="w-5 h-5" />
-            </button>
-          </div>
+              <ArrowRightIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+            </motion.button>
+          </motion.div>
 
-          <div className="hidden md:flex justify-center relative">
+          <motion.div
+            variants={itemVariants}
+            className="hidden md:flex justify-center relative"
+          >
             <div className="absolute inset-0 bg-blue-200/30 rounded-full blur-2xl -z-10"></div>
             <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-6">
               {[
@@ -178,8 +207,9 @@ function HomePage() {
                   subtitle: "Intelligent Insights",
                 },
               ].map(({ Icon, color, title, subtitle }, index) => (
-                <div
+                <motion.div
                   key={index}
+                  whileHover={{ scale: 1.05 }}
                   className="flex items-center space-x-4 bg-gray-100 dark:bg-gray-700 p-4 rounded-xl"
                 >
                   <Icon className={`w-10 h-10 ${color}`} />
@@ -191,25 +221,30 @@ function HomePage() {
                       {subtitle}
                     </p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
-      {/* Features Section */}
       <section id="features" className="py-20 bg-gray-50 dark:bg-gray-800">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={containerVariants}
+          className="container mx-auto px-4 sm:px-6 lg:px-8"
+        >
+          <motion.div variants={itemVariants} className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               Our Features
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
+            <p className="text-base sm:text-xl text-gray-600 dark:text-gray-300">
               Powerful solutions designed to elevate your business
             </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {[
               {
                 Icon: CloudIcon,
@@ -233,55 +268,65 @@ function HomePage() {
                   "Advanced data insights to drive strategic decision-making.",
               },
             ].map((feature, index) => (
-              <div
+              <motion.div
                 key={index}
+                variants={itemVariants}
+                whileHover={{ scale: 1.05 }}
                 className="bg-white dark:bg-gray-700 p-6 rounded-xl text-center shadow-md"
               >
                 <div
-                  className={`mx-auto w-20 h-20 mb-4 flex items-center justify-center ${feature.color} bg-opacity-10 rounded-full`}
+                  className={`mx-auto w-16 h-16 mb-4 flex items-center justify-center ${feature.color} bg-opacity-10 rounded-full`}
                 >
-                  <feature.Icon className="w-10 h-10" />
+                  <feature.Icon className="w-8 h-8" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3 dark:text-gray-200">
+                <h3 className="text-lg sm:text-xl font-semibold mb-3 dark:text-gray-200">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300">
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                   {feature.description}
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
-      {/* About Section */}
       <section id="about" className="py-20 bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={containerVariants}
+          className="container mx-auto px-4 sm:px-6 lg:px-8"
+        >
+          <motion.div variants={itemVariants} className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               About Us
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
+            <p className="text-base sm:text-xl text-gray-600 dark:text-gray-300">
               Our mission is to transform digital experiences
             </p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h3 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 items-center">
+            <motion.div variants={itemVariants}>
+              <h3 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900 dark:text-gray-100">
                 Innovative Technology, Personal Touch
               </h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4">
                 We are a team of passionate technologists dedicated to creating
                 solutions that not only solve problems but also inspire
                 innovation.
               </p>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 With years of experience across multiple industries, we
                 understand the unique challenges businesses face in the digital
                 landscape.
               </p>
-            </div>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg p-8">
+            </motion.div>
+            <motion.div
+              variants={itemVariants}
+              className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8"
+            >
               {[
                 {
                   Icon: CodeIcon,
@@ -296,166 +341,191 @@ function HomePage() {
                   subtitle: "Empowering businesses through technology",
                 },
               ].map(({ Icon, color, title, subtitle }, index) => (
-                <div key={index} className="flex items-center mb-6">
+                <motion.div
+                  key={index}
+                  whileHover={{ scale: 1.05 }}
+                  className="flex items-center mb-4 sm:mb-6"
+                >
                   <div
-                    className={`w-16 h-16 ${color} bg-opacity-10 rounded-full flex items-center justify-center mr-4`}
+                    className={`w-12 sm:w-16 h-12 sm:h-16 ${color} bg-opacity-10 rounded-full flex items-center justify-center mr-4`}
                   >
-                    <Icon className="w-8 h-8" />
+                    <Icon className="w-6 sm:w-8 h-6 sm:h-8" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-xl dark:text-gray-200">
+                    <h4 className="font-semibold text-base sm:text-xl dark:text-gray-200">
                       {title}
                     </h4>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       {subtitle}
                     </p>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
-      {/* Contact Section */}
       <section id="contact" className="py-20 bg-gray-50 dark:bg-gray-800">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={containerVariants}
+          className="container mx-auto px-4 sm:px-6 lg:px-8"
+        >
+          <motion.div variants={itemVariants} className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               Contact Us
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
-              We would love to hear from you
+            <p className="text-base sm:text-xl text-gray-600 dark:text-gray-300">
+              We would love to hear from you. Let us start a conversation.
             </p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-12">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Your Name"
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Your Email"
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-              <textarea
-                name="message"
-                value={formData.message}
-                onChange={handleInputChange}
-                placeholder="Your Message"
-                rows="5"
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              ></textarea>
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
-              >
-                Send Message
-              </button>
-            </form>
-            <div className="bg-white dark:bg-gray-700 rounded-xl shadow-lg p-8">
-              {[
-                {
-                  Icon: PhoneIcon,
-                  color: "text-blue-500",
-                  title: "Phone",
-                  content: "(123) 456-7890",
-                },
-                {
-                  Icon: MailIcon,
-                  color: "text-green-500",
-                  title: "Email",
-                  content: "contact@productname.com",
-                },
-                {
-                  Icon: MapPinIcon,
-                  color: "text-red-500",
-                  title: "Address",
-                  content: "123 Tech Lane, Innovation City",
-                },
-              ].map(({ Icon, color, title, content }, index) => (
-                <div key={index} className="flex items-center mb-6">
-                  <Icon className={`w-8 h-8 mr-4 ${color}`} />
-                  <div>
-                    <h4 className="font-semibold dark:text-gray-200">
-                      {title}
-                    </h4>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      {content}
-                    </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12">
+            <motion.div
+              variants={itemVariants}
+              className="bg-white dark:bg-gray-700 p-6 sm:p-8 rounded-xl shadow-md"
+            >
+              <h3 className="text-xl sm:text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">
+                Get in Touch
+              </h3>
+              <div className="space-y-4">
+                {[
+                  {
+                    Icon: MailIcon,
+                    title: "Email",
+                    content: "hello@productname.com",
+                  },
+                  {
+                    Icon: PhoneIcon,
+                    title: "Phone",
+                    content: "+1 (123) 456-7890",
+                  },
+                  {
+                    Icon: MapPinIcon,
+                    title: "Address",
+                    content: "123 Tech Lane, Innovation City",
+                  },
+                ].map(({ Icon, title, content }, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center space-x-4 text-gray-600 dark:text-gray-300"
+                  >
+                    <Icon className="w-6 h-6 text-blue-500" />
+                    <div>
+                      <p className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                        {title}
+                      </p>
+                      <p className="text-sm">{content}</p>
+                    </div>
                   </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              variants={itemVariants}
+              className="bg-white dark:bg-gray-700 p-6 sm:p-8 rounded-xl shadow-md"
+            >
+              <h3 className="text-xl sm:text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">
+                Send us a Message
+              </h3>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
+                    rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500
+                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  />
                 </div>
-              ))}
-            </div>
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
+                    rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500
+                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="message"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
+                    Message
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    required
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
+                    rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500
+                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+                <motion.button
+                  type="submit"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg 
+                  hover:bg-blue-700 transition flex items-center justify-center space-x-2"
+                >
+                  <span>Send Message</span>
+                  <ArrowRightIcon className="w-4 h-4" />
+                </motion.button>
+              </form>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-6 grid md:grid-cols-3 gap-8">
-          <div>
-            <h4 className="text-xl font-bold mb-4">ProductName</h4>
-            <p className="text-gray-400">
-              Transforming digital experiences through innovative technology
-              solutions.
-            </p>
-          </div>
-          <div>
-            <h4 className="text-xl font-bold mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              {["Home", "Features", "About", "Contact"].map((link) => (
-                <li key={link}>
-                  <button
-                    onClick={() => scrollToSection(link.toLowerCase())}
-                    className="text-gray-400 hover:text-white transition"
-                  >
-                    {link}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-xl font-bold mb-4">Connect With Us</h4>
-            <div className="flex space-x-4">
-              {[
-                { name: "Twitter", url: "#" },
-                { name: "LinkedIn", url: "#" },
-                { name: "GitHub", url: "#" },
-              ].map((social) => (
-                <a
-                  key={social.name}
-                  href={social.url}
-                  className="text-gray-400 hover:text-white transition"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {social.name}
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className="container mx-auto px-6 mt-8 pt-6 border-t border-gray-800 text-center">
-          <p className="text-gray-500">
+      <footer className="bg-gray-100 dark:bg-gray-900 py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             © 2024 ProductName. All rights reserved.
           </p>
+          <div className="mt-4 flex justify-center space-x-4">
+            {["Privacy", "Terms", "Sitemap"].map((link, index) => (
+              <a
+                key={index}
+                href="#"
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              >
+                {link}
+              </a>
+            ))}
+          </div>
         </div>
       </footer>
-    </div>
+    </motion.div>
   );
 }
 
-export default HomePage;
+export default Home;
