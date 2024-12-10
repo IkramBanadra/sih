@@ -101,7 +101,7 @@ const AdminMonitoring = () => {
       <div className="flex-1 overflow-auto relative z-10">
         <Header title="Admin Monitoring" />
 
-        <section className="flex flex-col justify-center antialiased bg-gray-800 text-gray-600 min-h-screen p-4">
+        <section className="flex flex-col justify-center antialiased bg-gray-900 text-gray-600 min-h-screen p-4">
           <div className="w-full">
             <div className="flex flex-wrap justify-center gap-4">
               {[1, 2, 3, 4].map((index) => (
