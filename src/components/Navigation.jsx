@@ -24,6 +24,10 @@ const Navigation = () => {
   const scrollToSection = (section) => {
     setActiveSection(section);
     setMobileMenuOpen(false);
+    const element = document.getElementById(section);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   const handleDashboardNavigation = () => {

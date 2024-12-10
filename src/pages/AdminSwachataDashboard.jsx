@@ -1,5 +1,10 @@
+import { motion } from "framer-motion";
+import { BarChart2, ShoppingBag, Users, Zap } from "lucide-react";
+import Header from "../components/common/Header";
+import StatCard from "../components/common/StatCard";
+import WasteDistributionChart from "../components/overview/WasteDistributionChart";
+import WasteOverviewCharts from "../components/overview/WasteOverviewCharts";
 import {
-  BarChart2,
   Menu,
   // Settings,
   ShieldCheck,
@@ -8,9 +13,8 @@ import {
   Monitor,
 } from "lucide-react";
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import Header from "../components/common/Header";
 
 const SIDEBAR_ITEMS = [
   {
@@ -46,9 +50,9 @@ const SIDEBAR_ITEMS = [
   // { name: "Settings", icon: Settings, color: "#6EE7B7", href: "/settings" },
 ];
 
+
 const AdminSwachataDashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
   return (
     <div className="flex h-screen bg-gray-900 text-gray-100 overflow-hidden">
       <div className="fixed inset-0 z-0">
@@ -101,68 +105,42 @@ const AdminSwachataDashboard = () => {
       <div className="flex-1 overflow-auto relative z-10">
         <Header title="Swachata" />
 
-        <section className="flex flex-col justify-center antialiased bg-gray-900 text-gray-600 min-h-screen p-4">
-          <div className="w-full">
-            <div className="flex flex-wrap justify-center gap-4">
-              {[1, 2, 3, 4].map((index) => (
-                <div key={index} className="w-[90%] md:w-[90%] lg:w-[90%]">
-                  <div className="bg-indigo-600 shadow-lg rounded-lg">
-                    <div className="px-6 py-5">
-                      <div className="flex items-start">
-                        <svg
-                          className="fill-current flex-shrink-0 mr-5"
-                          width="30"
-                          height="30"
-                          viewBox="0 0 30 30"
-                        >
-                          <path
-                            className="text-indigo-300"
-                            d="m16 14.883 14-7L14.447.106a1 1 0 0 0-.895 0L0 6.883l16 8Z"
-                          />
-                          <path
-                            className="text-indigo-200"
-                            d="M16 14.619v15l13.447-6.724A.998.998 0 0 0 30 22V7.619l-14 7Z"
-                          />
-                          <path
-                            className="text-indigo-500"
-                            d="m16 14.619-16-8V21c0 .379.214.725.553.895L16 29.619v-15Z"
-                          />
-                        </svg>
-                        <div className="flex-grow truncate">
-                          <div className="w-full sm:flex justify-between items-center mb-3">
-                            <h2 className="text-2xl leading-snug font-extrabold text-gray-50 truncate mb-1 sm:mb-0">
-                              Simple Design Tips {index}
-                            </h2>
-                          </div>
-                          <div className="flex items-end justify-between whitespace-normal">
-                            <div className="max-w-md text-indigo-100">
-                              <p className="mb-2">
-                                Lorem ipsum dolor sit amet, consecte adipiscing
-                                elit sed do eiusmod tempor incididunt ut labore
-                                et dolore.
-                              </p>
-                            </div>
-                            <a
-                              className="flex-shrink-0 flex items-center justify-center text-indigo-600 w-10 h-10 rounded-full bg-gradient-to-b from-indigo-50 to-indigo-100 hover:from-white hover:to-indigo-50 focus:outline-none focus-visible:from-white focus-visible:to-white transition duration-150 ml-2"
-                              href="#0"
-                            >
-                              <span className="block font-bold">
-                                <span className="sr-only">Read more</span> --
-                              </span>
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+        <main className="max-w-7xl mx-auto py-6 px-4 lg:px-8">
+          {/* STATS */}
+          <motion.div
+            className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+          >
+            <StatCard
+              name="Waste Recycling Efficiency"
+              icon={Zap}
+              value="25%"
+              color="#6366F1"
+            />
+            <StatCard name="New Users" icon={Users} value="2" color="#8B5CF6" />
+            <StatCard
+              name="Total Garbage"
+              icon={ShoppingBag}
+              value="567"
+              color="#EC4899"
+            />
+            <StatCard
+              name="Cleanliness Rate"
+              icon={BarChart2}
+              value="12.5%"
+              color="#10B981"
+            />
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <WasteDistributionChart />
+            <WasteOverviewCharts />
           </div>
-        </section>
+        </main>
       </div>
     </div>
   );
 };
-
 export default AdminSwachataDashboard;

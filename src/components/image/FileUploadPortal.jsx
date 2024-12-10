@@ -1,5 +1,19 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB8Rlo1r_1bMadGAs6WOcLRNj4iuW4kCR8",
+  authDomain: "sih2024-a16f8.firebaseapp.com",
+  projectId: "sih2024-a16f8",
+  storageBucket: "sih2024-a16f8.firebasestorage.app",
+  messagingSenderId: "52485487058",
+  appId: "1:52485487058:web:c2faa18225f507d44db00b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 const ResultValue = ({ value }) => {
   if (value === null || value === undefined) {
@@ -38,7 +52,7 @@ const ResultsTable = ({ results }) => {
   if (!results || Object.keys(results).length === 0) return null;
 
   return (
-    <div className="mt-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+    <div className="mt-6 hidden bg-gray-50 p-4 rounded-lg border border-gray-200">
       <h4 className="font-semibold text-gray-700 mb-4">Analysis Results</h4>
       <table className="w-full text-left border-collapse">
         <thead>
@@ -72,7 +86,7 @@ const FileUploadPortal = () => {
   const [processId, setProcessId] = useState(null);
   const [mediaType, setMediaType] = useState('image');
 
-  const BASE_URL = 'https://0e2b-2401-4900-2354-138d-8e6-22b7-f0e0-a488.ngrok-free.app';
+  const BASE_URL = 'https://e9b7-115-247-189-246.ngrok-free.app';
 
   const handleFileChange = (event) => {
     const files = event.target.files;
@@ -110,6 +124,31 @@ const FileUploadPortal = () => {
     }
   };
 
+  const saveToFirestore = async (data, originalFile) => {
+    try {
+      const firestoreData = {
+        ...data,
+        
+        timestamp: serverTimestamp(),
+        media_type: mediaType,
+        
+        file_name: originalFile ? originalFile.name : null,
+        file_size: originalFile ? originalFile.size : null,
+        file_type: originalFile ? originalFile.type : null
+      };
+
+      Object.keys(firestoreData).forEach(key => 
+        firestoreData[key] === undefined && delete firestoreData[key]
+      );
+
+      const docRef = await addDoc(collection(db, 'image_process_requests'), firestoreData);
+      console.log('Document written with ID: ', docRef.id);
+    } catch (error) {
+      console.error('Error saving to Firestore: ', error);
+      setError('Failed to save analysis results');
+    }
+  };
+
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
       setError('Please select a file');
@@ -140,6 +179,11 @@ const FileUploadPortal = () => {
 
       if (!processIdFromResponse) {
         setUploadResult(response.data);
+        
+        if (response.data) {
+          await saveToFirestore(response.data, selectedFiles[0]);
+        }
+        
         setIsLoading(false);
         return;
       }
@@ -172,6 +216,9 @@ const FileUploadPortal = () => {
       }
 
       setUploadResult(response.data);
+      
+      await saveToFirestore(response.data, selectedFiles[0]);
+      
       setIsLoading(false);
     } catch (err) {
       handleError(err);

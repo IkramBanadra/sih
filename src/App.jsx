@@ -6,7 +6,7 @@ import AdminSwachataDashboard from "./pages/AdminSwachataDashboard";
 import Home from "./pages/Home";
 import ImageProcess from "./pages/ImageProcess";
 import Swachata from "./pages/Swachata";
-import LifePage from "./pages/LifePage";
+// import LifePage from "./pages/LifePage";
 import ImageUploadPage from "./pages/ImageUploadPage";
 import PostOfficeInfo from "./pages/PostOfficeInfo";
 import AdminLifeDashboard from "./pages/AdminLifeDashboard";
@@ -25,7 +25,7 @@ function App() {
         <Route path="/accessReq" element={<PostOfficeRequest />} />
         <Route path="/imgProcess" element={<ImageProcess />} />
         <Route path="/postOfficeSwachataPage" element={<Swachata />} />
-        <Route path="/postOfficeLifePage" element={<LifePage />} />
+        {/* <Route path="/postOfficeLifePage" element={<LifePage />} /> */}
         <Route path="/postOfficeImgUpload" element={<ImageUploadPage />} />
         <Route path="/postOfficeInfo" element={<PostOfficeInfo />} />
         <Route path="/adminSwachataDashboard" element={<AdminSwachataDashboard />} />

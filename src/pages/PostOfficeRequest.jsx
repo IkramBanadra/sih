@@ -2,7 +2,7 @@ import { useState } from "react";
 import "./Lg.css";
 import { Link, useNavigate } from "react-router-dom";
 import db from "../firebaseConfig";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore";
 import Swal from "sweetalert2";
 
 function PostOfficeRequest() {
@@ -78,12 +78,32 @@ function PostOfficeRequest() {
     return true;
   };
 
+  const checkPincodeExists = async (pincode) => {
+    const postOfficeRef = collection(db, "post_office_requests");
+    const q = query(postOfficeRef, where("pincode", "==", pincode));
+    const querySnapshot = await getDocs(q);
+
+    return !querySnapshot.empty; // If there are any matching documents, the pincode already exists
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (isSubmitting) return;
 
     if (!validateForm()) return;
+
+    const { pincode } = formData;
+    const isPincodeExist = await checkPincodeExists(pincode);
+
+    if (isPincodeExist) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Pincode Already Exists',
+        text: `The pincode ${pincode} has already been requested. Please check or try again with a different pincode.`
+      });
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -174,34 +194,7 @@ function PostOfficeRequest() {
           <option value="" disabled>
             Select State
           </option>
-          <option value="Andhra Pradesh">Andhra Pradesh</option>
-          <option value="Arunachal Pradesh">Arunachal Pradesh</option>
-          <option value="Assam">Assam</option>
-          <option value="Bihar">Bihar</option>
-          <option value="Chhattisgarh">Chhattisgarh</option>
-          <option value="Goa">Goa</option>
-          <option value="Gujarat">Gujarat</option>
-          <option value="Haryana">Haryana</option>
-          <option value="Himachal Pradesh">Himachal Pradesh</option>
-          <option value="Jharkhand">Jharkhand</option>
-          <option value="Karnataka">Karnataka</option>
-          <option value="Kerala">Kerala</option>
-          <option value="Madhya Pradesh">Madhya Pradesh</option>
-          <option value="Maharashtra">Maharashtra</option>
-          <option value="Manipur">Manipur</option>
-          <option value="Meghalaya">Meghalaya</option>
-          <option value="Mizoram">Mizoram</option>
-          <option value="Nagaland">Nagaland</option>
-          <option value="Odisha">Odisha</option>
-          <option value="Punjab">Punjab</option>
-          <option value="Rajasthan">Rajasthan</option>
-          <option value="Sikkim">Sikkim</option>
-          <option value="Tamil Nadu">Tamil Nadu</option>
-          <option value="Telangana">Telangana</option>
-          <option value="Tripura">Tripura</option>
-          <option value="Uttar Pradesh">Uttar Pradesh</option>
-          <option value="Uttarakhand">Uttarakhand</option>
-          <option value="West Bengal">West Bengal</option>
+          {/* Add all your state options here */}
         </select>
         
         <input

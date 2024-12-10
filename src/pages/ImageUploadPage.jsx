@@ -1,9 +1,9 @@
 import Header from "../components/common/Header";
-import UserActivityHeatmap from "../components/image/UserActivityHeatmap";
+// import UserActivityHeatmap from "../components/image/UserActivityHeatmap";
 import FileUploadPortal from "../components/image/FileUploadPortal";
 import { motion } from "framer-motion";
-import { BarChart2, Users} from "lucide-react";
-import { Menu, ShieldCheck, LayoutDashboard } from "lucide-react";
+import { BarChart2, Home, Users} from "lucide-react";
+import { Menu, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -15,18 +15,18 @@ const SIDEBAR_ITEMS = [
     color: "#355F2E",
     href: "/postOfficeSwachataPage",
   },
-  {
-    name: "Life",
-    icon: ShieldCheck,
-    color: "#8B5CF6",
-    href: "/postOfficeLifePage",
-  },
   { name: "Image Uplodation", icon: Users, color: "#EC4899", href: "/postOfficeImgUpload" },
   {
     name: "Post Office Details",
     icon: LayoutDashboard,
     color: "#EC4899",
     href: "/postOfficeInfo",
+  },
+  {
+    name: "Home",
+    icon: Home,
+    color: "#4CAF50",
+    href: "/",
   },
 ];
 
@@ -85,8 +85,8 @@ const ImageUploadPage = () => {
         <Header title="Users" />
 
         <main className="max-w-7xl mx-auto py-6 px-4 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-            <UserActivityHeatmap />
+          <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mt-8">
+            {/* <UserActivityHeatmap /> */}
             <FileUploadPortal />
           </div>
         </main>
