@@ -1,26 +1,71 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const ResultSection = ({ title, data }) => {
-  const hasContent = data && (typeof data === 'object' ? Object.keys(data).length > 0 : data);
+const ResultValue = ({ value }) => {
+  // Handle different types of values
+  if (value === null || value === undefined) {
+    return <span className="text-gray-500">N/A</span>;
+  }
 
-  if (!hasContent) return null;
+  if (typeof value === 'object') {
+    // If it's an object, convert it to a string representation
+    if (Array.isArray(value)) {
+      // For arrays, join elements
+      return <span>{value.join(', ')}</span>;
+    }
+    
+    // For nested objects, stringify or render key-value pairs
+    return (
+      <div className="bg-gray-50 p-2 rounded">
+        {Object.entries(value).map(([k, v]) => (
+          <div key={k} className="flex justify-between">
+            <span className="text-gray-600">{k}:</span>
+            <ResultValue value={v} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // For primitive values
+  return (
+    <span>
+      {typeof value === 'number' 
+        ? value.toLocaleString() + 
+          (String(value).includes('.') 
+            ? (String(value).includes('%') ? '%' : '') 
+            : '')
+        : String(value)}
+    </span>
+  );
+};
+
+const ResultsTable = ({ results }) => {
+  if (!results || Object.keys(results).length === 0) return null;
 
   return (
-    <div className="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
-      <h4 className="font-semibold text-gray-700 mb-2">{title}</h4>
-      {typeof data === 'object' ? (
-        <div className="grid grid-cols-2 gap-2">
-          {Object.entries(data).map(([key, value]) => (
-            <div key={key} className="flex justify-between">
-              <span className="text-gray-600">{key}</span>
-              <span className="font-medium text-blue-700">{value.toLocaleString()}%</span>
-            </div>
+    <div className="mt-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+      <h4 className="font-semibold text-gray-700 mb-4">Analysis Results</h4>
+      <table className="w-full text-left border-collapse">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border p-2 text-gray-700">Key</th>
+            <th className="border p-2 text-gray-700">Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(results).map(([key, value]) => (
+            <tr key={key} className="hover:bg-gray-100">
+              <td className="border p-2 text-gray-600 capitalize">
+                {key.replace(/_/g, ' ')}
+              </td>
+              <td className="border p-2 font-medium text-blue-700">
+                <ResultValue value={value} />
+              </td>
+            </tr>
           ))}
-        </div>
-      ) : (
-        <p className="text-gray-600">{data}</p>
-      )}
+        </tbody>
+      </table>
     </div>
   );
 };
@@ -30,6 +75,9 @@ const ImageProcess = () => {
   const [uploadResult, setUploadResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [processId, setProcessId] = useState(null);
+
+  const BASE_URL = 'https://4368-2401-4900-2354-138d-7de5-826-3aac-8717.ngrok-free.app';
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
@@ -68,25 +116,69 @@ const ImageProcess = () => {
     setError(null);
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/upload', formData, {
+      const response = await axios.post(`${BASE_URL}/process-image`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
 
-      setUploadResult(response.data);
-    } catch (err) {
-      if (err.response) {
-        setError(`Server Error: ${err.response.status} - ${JSON.stringify(err.response.data)}`);
-      } else if (err.request) {
-        setError('No response received from the server. Please check your network connection.');
-      } else {
-        setError('Error setting up the request: ' + err.message);
+      // Check for process_id in multiple potential locations
+      const processIdFromResponse = 
+        response.data.process_id || 
+        response.data.processId || 
+        response.data.id;
+
+      if (!processIdFromResponse) {
+        // If no process ID found, try to fetch results immediately
+        setUploadResult(response.data);
+        setIsLoading(false);
+        return;
       }
-      console.error('Upload error:', err);
-    } finally {
-      setIsLoading(false);
+
+      // Store the process ID to fetch results later
+      setProcessId(processIdFromResponse);
+
+      // Set a timeout to fetch results after 5-10 seconds
+      setTimeout(fetchResults, Math.floor(Math.random() * 5000) + 5000);
+    } catch (err) {
+      handleError(err);
     }
+  };
+
+  const fetchResults = async () => {
+    if (!processId) {
+      // If no process ID, attempt to process without it
+      handleUpload();
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${BASE_URL}/process-image?process_id=${processId}`);
+      
+      // If no data in the response, try to fall back to original upload
+      if (!response.data || Object.keys(response.data).length === 0) {
+        setError('No results found. Please try uploading again.');
+        setIsLoading(false);
+        return;
+      }
+
+      setUploadResult(response.data);
+      setIsLoading(false);
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  const handleError = (err) => {
+    if (err.response) {
+      setError(`Server Error: ${err.response.status} - ${JSON.stringify(err.response.data)}`);
+    } else if (err.request) {
+      setError('No response received from the server. Please check your network connection.');
+    } else {
+      setError('Error processing the request: ' + err.message);
+    }
+    console.error('Error:', err);
+    setIsLoading(false);
   };
 
   return (
@@ -117,41 +209,7 @@ const ImageProcess = () => {
       )}
 
       {uploadResult && (
-        <div className="mt-6 space-y-4">
-          <ResultSection 
-            title="Uploaded File" 
-            data={uploadResult.uploaded_file} 
-          />
-
-          <ResultSection 
-            title="Type Results" 
-            data={uploadResult.type_results} 
-          />
-
-          <ResultSection 
-            title="Frequency" 
-            data={uploadResult.frequency} 
-          />
-
-          <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-            <h4 className="font-semibold text-gray-700 mb-2">Garbage Percentage</h4>
-            <p className="text-blue-700 font-medium">{uploadResult.garbage_percentage}%</p>
-          </div>
-
-          {uploadResult.processed_video_URL && (
-            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-              <h4 className="font-semibold text-gray-700 mb-2">Processed Image</h4>
-              <a 
-                href={uploadResult.processed_video_URL} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                View Processed Image
-              </a>
-            </div>
-          )}
-        </div>
+        <ResultsTable results={uploadResult} />
       )}
     </div>
   );
