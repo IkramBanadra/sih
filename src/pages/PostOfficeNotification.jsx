@@ -6,6 +6,7 @@ import {
   ShoppingCart,
   TrendingUp,
   Monitor,
+  Home,
 } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -43,10 +44,16 @@ const SIDEBAR_ITEMS = [
     color: "#6EE7B7",
     href: "/adminMonitoring",
   },
+  {
+    name: "Home",
+    icon: Home,
+    color: "#4CAF50",
+    href: "/",
+  },
   // { name: "Settings", icon: Settings, color: "#6EE7B7", href: "/settings" },
 ];
 
-const AdminNotification = () => {
+const PostOfficeNotification = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
@@ -165,4 +172,4 @@ const AdminNotification = () => {
   );
 };
 
-export default AdminNotification;
+export default PostOfficeNotification;

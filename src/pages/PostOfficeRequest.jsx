@@ -83,7 +83,7 @@ function PostOfficeRequest() {
     const q = query(postOfficeRef, where("pincode", "==", pincode));
     const querySnapshot = await getDocs(q);
 
-    return !querySnapshot.empty; // If there are any matching documents, the pincode already exists
+    return !querySnapshot.empty;
   };
 
   const handleSubmit = async (e) => {
@@ -194,7 +194,6 @@ function PostOfficeRequest() {
           <option value="" disabled>
             Select State
           </option>
-          {/* Add all your state options here */}
         </select>
         
         <input

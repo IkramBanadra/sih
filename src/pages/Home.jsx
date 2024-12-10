@@ -79,7 +79,6 @@ function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate form data
     if (!formData.name || !formData.email || !formData.message) {
       Swal.fire({
         icon: "error",
@@ -89,7 +88,6 @@ function Home() {
       return;
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       Swal.fire({
@@ -100,13 +98,11 @@ function Home() {
       return;
     }
 
-    // Prevent multiple submissions
     if (isSubmitting) return;
 
     try {
       setIsSubmitting(true);
 
-      // Save query to Firestore
       const queriesRef = collection(db, "queries");
       await addDoc(queriesRef, {
         ...formData,
@@ -114,7 +110,6 @@ function Home() {
         status: "new",
       });
 
-      // Show success message
       Swal.fire({
         icon: "success",
         title: "Message Sent!",
@@ -122,7 +117,6 @@ function Home() {
         confirmButtonColor: "#3085d6",
       });
 
-      // Reset form
       setFormData({
         name: "",
         email: "",

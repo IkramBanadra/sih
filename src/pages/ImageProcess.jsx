@@ -8,7 +8,6 @@ const ResultValue = ({ value }) => {
 
   if (typeof value === 'object') {
     if (Array.isArray(value)) {
-      // For arrays, join elements
       return <span>{value.join(', ')}</span>;
     }
     
