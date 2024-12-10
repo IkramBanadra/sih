@@ -13,8 +13,12 @@ import {
 } from "lucide-react";
 import Navigation from "../components/Navigation";
 import Swal from "sweetalert2";
+import db from "../firebaseConfig"; 
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -24,6 +28,11 @@ function Home() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleGetStartedClick = () => {
+    navigate('/accessReq'); 
+  };
 
   useEffect(() => {
     const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)");
@@ -67,14 +76,68 @@ function Home() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    Swal.fire("Message sent! We will get back to you soon.");
-    setFormData({
-      name: "",
-      email: "",
-      message: "",
-    });
+
+    // Validate form data
+    if (!formData.name || !formData.email || !formData.message) {
+      Swal.fire({
+        icon: "error",
+        title: "Incomplete Form",
+        text: "Please fill in all fields.",
+      });
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Email",
+        text: "Please enter a valid email address.",
+      });
+      return;
+    }
+
+    // Prevent multiple submissions
+    if (isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+
+      // Save query to Firestore
+      const queriesRef = collection(db, "queries");
+      await addDoc(queriesRef, {
+        ...formData,
+        timestamp: serverTimestamp(),
+        status: "new",
+      });
+
+      // Show success message
+      Swal.fire({
+        icon: "success",
+        title: "Message Sent!",
+        text: "We will get back to you soon.",
+        confirmButtonColor: "#3085d6",
+      });
+
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        message: "",
+      });
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Submission Failed",
+        text: "There was a problem sending your message. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const scrollToSection = (sectionId) => {
@@ -172,6 +235,7 @@ function Home() {
               seamless user experiences.
             </p>
             <motion.button
+              onClick={handleGetStartedClick}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="mx-auto md:mx-0 bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg 
@@ -493,12 +557,16 @@ function Home() {
                 </div>
                 <motion.button
                   type="submit"
+                  disabled={isSubmitting}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg 
-                  hover:bg-blue-700 transition flex items-center justify-center space-x-2"
+                  className={`w-full px-4 py-2 rounded-lg transition flex items-center justify-center space-x-2 ${
+                    isSubmitting
+                      ? "bg-blue-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  } text-white`}
                 >
-                  <span>Send Message</span>
+                  <span>{isSubmitting ? "Sending..." : "Send Message"}</span>
                   <ArrowRightIcon className="w-4 h-4" />
                 </motion.button>
               </form>

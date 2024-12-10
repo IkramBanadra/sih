@@ -13,28 +13,29 @@ import AdminLifeDashboard from "./pages/AdminLifeDashboard";
 import AdminUsersDashboard from "./pages/AdminUsersDashboard";
 import AdminNotification from "./pages/AdminNotification";
 import AdminMonitoring from "./pages/AdminMonitoring";
+import NotFoundPage from "./pages/NotFoundPage"; 
 
 function App() {
-
   return (
     <>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/adminLogin" element={<AdminLogin />} />
-          <Route path="/postOfficeLogin" element={<PostOfficeLogin />} />
-          <Route path="/accessReq" element={<PostOfficeRequest />} />
-          <Route path="/imgProcess" element={<ImageProcess />} />
-          <Route path="/postOfficeSwachataPage" element={<Swachata />} />
-          <Route path="/postOfficeLifePage" element={<LifePage />} />
-          <Route path="/postOfficeImgUpload" element={<ImageUploadPage />} />
-          <Route path="/postOfficeInfo" element={<PostOfficeInfo />} />
-          <Route path="/adminSwachataDashboard" element={<AdminSwachataDashboard />} />
-          <Route path="/adminLifeDashboard" element={<AdminLifeDashboard />} />
-          <Route path="/adminUsersDashboard" element={<AdminUsersDashboard />} />
-          <Route path="/adminNotification" element={<AdminNotification />} />
-          <Route path="/adminMonitoring" element={<AdminMonitoring />} />
-        </Routes>
-        
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/adminLogin" element={<AdminLogin />} />
+        <Route path="/postOfficeLogin" element={<PostOfficeLogin />} />
+        <Route path="/accessReq" element={<PostOfficeRequest />} />
+        <Route path="/imgProcess" element={<ImageProcess />} />
+        <Route path="/postOfficeSwachataPage" element={<Swachata />} />
+        <Route path="/postOfficeLifePage" element={<LifePage />} />
+        <Route path="/postOfficeImgUpload" element={<ImageUploadPage />} />
+        <Route path="/postOfficeInfo" element={<PostOfficeInfo />} />
+        <Route path="/adminSwachataDashboard" element={<AdminSwachataDashboard />} />
+        <Route path="/adminLifeDashboard" element={<AdminLifeDashboard />} />
+        <Route path="/adminUsersDashboard" element={<AdminUsersDashboard />} />
+        <Route path="/adminNotification" element={<AdminNotification />} />
+        <Route path="/adminMonitoring" element={<AdminMonitoring />} />
+
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
     </>
   );
 }

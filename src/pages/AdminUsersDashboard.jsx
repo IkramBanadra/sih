@@ -1,16 +1,24 @@
 import {
   BarChart2,
   Menu,
-  // Settings,
   ShieldCheck,
   ShoppingCart,
   TrendingUp,
   Monitor,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Header from "../components/common/Header";
+import { 
+  collection, 
+  query, 
+  getDocs, 
+  deleteDoc, 
+  addDoc, 
+  doc 
+} from "firebase/firestore";
+import db from "../firebaseConfig";
 
 const SIDEBAR_ITEMS = [
   {
@@ -43,11 +51,58 @@ const SIDEBAR_ITEMS = [
     color: "#6EE7B7",
     href: "/adminMonitoring",
   },
-  // { name: "Settings", icon: Settings, color: "#6EE7B7", href: "/settings" },
 ];
 
 const AdminUsersDashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [requests, setRequests] = useState([]);
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const q = query(collection(db, "post_office_requests"));
+        const querySnapshot = await getDocs(q);
+        const requestsData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setRequests(requestsData);
+      } catch (error) {
+        console.error("Error fetching requests: ", error);
+        alert("Failed to fetch requests");
+      }
+    };
+
+    fetchRequests();
+  }, []);
+
+  const handleAgree = async (request) => {
+    try {
+      await addDoc(collection(db, "post"), request);
+      
+      await deleteDoc(doc(db, "post_office_requests", request.id));
+      
+      setRequests(requests.filter(req => req.id !== request.id));
+      
+      alert("Request approved and moved to post collection");
+    } catch (error) {
+      console.error("Error processing request: ", error);
+      alert("Failed to process request");
+    }
+  };
+
+  const handleDecline = async (requestId) => {
+    try {
+      await deleteDoc(doc(db, "post_office_requests", requestId));
+      
+      setRequests(requests.filter(req => req.id !== requestId));
+      
+      alert("Request declined and deleted");
+    } catch (error) {
+      console.error("Error declining request: ", error);
+      alert("Failed to decline request");
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-900 text-gray-100 overflow-hidden">
@@ -104,8 +159,8 @@ const AdminUsersDashboard = () => {
         <section className="flex flex-col justify-center antialiased bg-gray-900 text-gray-600 min-h-screen p-4">
           <div className="w-full">
             <div className="flex flex-wrap justify-center gap-4">
-              {[1, 2, 3, 4].map((index) => (
-                <div key={index} className="w-[90%] md:w-[90%] lg:w-[90%]">
+              {requests.map((request) => (
+                <div key={request.id} className="w-[90%] md:w-[90%] lg:w-[90%]">
                   <div className="bg-indigo-600 shadow-lg rounded-lg">
                     <div className="px-6 py-5">
                       <div className="flex items-start">
@@ -131,25 +186,31 @@ const AdminUsersDashboard = () => {
                         <div className="flex-grow truncate">
                           <div className="w-full sm:flex justify-between items-center mb-3">
                             <h2 className="text-2xl leading-snug font-extrabold text-gray-50 truncate mb-1 sm:mb-0">
-                              Simple Design Tips {index}
+                              {request.name}
                             </h2>
                           </div>
                           <div className="flex items-end justify-between whitespace-normal">
                             <div className="max-w-md text-indigo-100">
                               <p className="mb-2">
-                                Lorem ipsum dolor sit amet, consecte adipiscing
-                                elit sed do eiusmod tempor incididunt ut labore
-                                et dolore.
+                                Email: {request.email}
+                                <br />
+                                Pincode: {request.pincode}
                               </p>
                             </div>
-                            <a
-                              className="flex-shrink-0 flex items-center justify-center text-indigo-600 w-10 h-10 rounded-full bg-gradient-to-b from-indigo-50 to-indigo-100 hover:from-white hover:to-indigo-50 focus:outline-none focus-visible:from-white focus-visible:to-white transition duration-150 ml-2"
-                              href="#0"
-                            >
-                              <span className="block font-bold">
-                                <span className="sr-only">Read more</span> --
-                              </span>
-                            </a>
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => handleAgree(request)}
+                                className="bg-white text-indigo-600 px-4 py-2 rounded-full hover:bg-gray-100 transition duration-150"
+                              >
+                                Agree
+                              </button>
+                              <button
+                                onClick={() => handleDecline(request.id)}
+                                className="bg-white text-red-600 px-4 py-2 rounded-full hover:bg-gray-100 transition duration-150"
+                              >
+                                Decline
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>

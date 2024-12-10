@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { BarChart2, Users} from "lucide-react";
 import Header from "../components/common/Header";
-import PostOfficeDetailsCard from "./PostOfficeDetailsCard"; // Import the new component
+import PostOfficeDetailsCard from "./PostOfficeDetailsCard";
 import { Menu, ShieldCheck, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
@@ -80,8 +80,7 @@ const PostOfficeInfo = () => {
 
         <main className="max-w-7xl mx-auto py-6 px-4 lg:px-8">
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Add Post Office Details Card */}
+          <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
             <PostOfficeDetailsCard />
           </div>
         </main>

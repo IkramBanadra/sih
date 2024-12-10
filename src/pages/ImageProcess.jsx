@@ -2,19 +2,16 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const ResultValue = ({ value }) => {
-  // Handle different types of values
   if (value === null || value === undefined) {
     return <span className="text-gray-500">N/A</span>;
   }
 
   if (typeof value === 'object') {
-    // If it's an object, convert it to a string representation
     if (Array.isArray(value)) {
       // For arrays, join elements
       return <span>{value.join(', ')}</span>;
     }
     
-    // For nested objects, stringify or render key-value pairs
     return (
       <div className="bg-gray-50 p-2 rounded">
         {Object.entries(value).map(([k, v]) => (
@@ -27,7 +24,6 @@ const ResultValue = ({ value }) => {
     );
   }
 
-  // For primitive values
   return (
     <span>
       {typeof value === 'number' 
@@ -70,23 +66,26 @@ const ResultsTable = ({ results }) => {
   );
 };
 
-const ImageProcess = () => {
+const MediaProcess = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadResult, setUploadResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [processId, setProcessId] = useState(null);
+  const [mediaType, setMediaType] = useState('image');
 
-  const BASE_URL = 'https://4368-2401-4900-2354-138d-7de5-826-3aac-8717.ngrok-free.app';
+  const BASE_URL = 'https://0e2b-2401-4900-2354-138d-8e6-22b7-f0e0-a488.ngrok-free.app';
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     
     if (file) {
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
+      const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
+      const videoTypes = ['video/mp4', 'video/mpeg', 'video/quicktime', 'video/x-msvideo', 'video/x-ms-wmv'];
+      const allowedTypes = [...imageTypes, ...videoTypes];
       
       if (!allowedTypes.includes(file.type)) {
-        setError('Only image files (JPEG, PNG, GIF, WebP, BMP) are allowed');
+        setError('Only image and video files are allowed');
         setSelectedFile(null);
         return;
       }
@@ -97,7 +96,7 @@ const ImageProcess = () => {
         setSelectedFile(null);
         return;
       }
-
+      setMediaType(imageTypes.includes(file.type) ? 'image' : 'video');
       setSelectedFile(file);
       setError(null);
     }
@@ -105,7 +104,7 @@ const ImageProcess = () => {
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      setError('Please select an image file');
+      setError('Please select a file');
       return;
     }
 
@@ -116,29 +115,29 @@ const ImageProcess = () => {
     setError(null);
 
     try {
-      const response = await axios.post(`${BASE_URL}/process-image`, formData, {
+      const endpoint = mediaType === 'image' 
+        ? '/process-image' 
+        : '/process-video';
+
+      const response = await axios.post(`${BASE_URL}${endpoint}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
 
-      // Check for process_id in multiple potential locations
       const processIdFromResponse = 
         response.data.process_id || 
         response.data.processId || 
         response.data.id;
 
       if (!processIdFromResponse) {
-        // If no process ID found, try to fetch results immediately
         setUploadResult(response.data);
         setIsLoading(false);
         return;
       }
 
-      // Store the process ID to fetch results later
       setProcessId(processIdFromResponse);
 
-      // Set a timeout to fetch results after 5-10 seconds
       setTimeout(fetchResults, Math.floor(Math.random() * 5000) + 5000);
     } catch (err) {
       handleError(err);
@@ -147,15 +146,17 @@ const ImageProcess = () => {
 
   const fetchResults = async () => {
     if (!processId) {
-      // If no process ID, attempt to process without it
       handleUpload();
       return;
     }
 
     try {
-      const response = await axios.get(`${BASE_URL}/process-image?process_id=${processId}`);
+      const endpoint = mediaType === 'image' 
+        ? '/process-image' 
+        : '/video-process';
+
+      const response = await axios.get(`${BASE_URL}${endpoint}?process_id=${processId}`);
       
-      // If no data in the response, try to fall back to original upload
       if (!response.data || Object.keys(response.data).length === 0) {
         setError('No results found. Please try uploading again.');
         setIsLoading(false);
@@ -183,11 +184,13 @@ const ImageProcess = () => {
 
   return (
     <div className="p-4 max-w-lg mx-auto bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Litter Analysis</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+        {mediaType === 'image' ? 'Litter' : 'Video'} Analysis
+      </h2>
       
       <input 
         type="file" 
-        accept="image/jpeg,image/png,image/gif,image/webp,image/bmp"
+        accept="image/jpeg,image/png,image/gif,image/webp,image/bmp,video/mp4,video/mpeg,video/quicktime,video/x-msvideo,video/x-ms-wmv"
         onChange={handleFileSelect} 
         className="mb-4 w-full border-2 border-dashed border-gray-300 p-2 rounded"
       />
@@ -199,7 +202,7 @@ const ImageProcess = () => {
                    hover:bg-blue-600 transition-colors duration-300
                    disabled:bg-gray-300 disabled:cursor-not-allowed"
       >
-        {isLoading ? 'Processing...' : 'Upload and Analyze'}
+        {isLoading ? 'Processing...' : `Upload and Analyze ${mediaType}`}
       </button>
 
       {error && (
@@ -215,4 +218,4 @@ const ImageProcess = () => {
   );
 };
 
-export default ImageProcess;
+export default MediaProcess;
