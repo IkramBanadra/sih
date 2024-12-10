@@ -1,19 +1,5 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyB8Rlo1r_1bMadGAs6WOcLRNj4iuW4kCR8",
-  authDomain: "sih2024-a16f8.firebaseapp.com",
-  projectId: "sih2024-a16f8",
-  storageBucket: "sih2024-a16f8.firebasestorage.app",
-  messagingSenderId: "52485487058",
-  appId: "1:52485487058:web:c2faa18225f507d44db00b"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 const ResultValue = ({ value }) => {
   if (value === null || value === undefined) {
@@ -22,8 +8,10 @@ const ResultValue = ({ value }) => {
 
   if (typeof value === 'object') {
     if (Array.isArray(value)) {
+      // For arrays, join elements
       return <span>{value.join(', ')}</span>;
     }
+    
     return (
       <div className="bg-gray-50 p-2 rounded">
         {Object.entries(value).map(([k, v]) => (
@@ -52,7 +40,7 @@ const ResultsTable = ({ results }) => {
   if (!results || Object.keys(results).length === 0) return null;
 
   return (
-    <div className="mt-6 hidden bg-gray-50 p-4 rounded-lg border border-gray-200">
+    <div className="mt-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
       <h4 className="font-semibold text-gray-700 mb-4">Analysis Results</h4>
       <table className="w-full text-left border-collapse">
         <thead>
@@ -78,85 +66,50 @@ const ResultsTable = ({ results }) => {
   );
 };
 
-const FileUploadPortal = () => {
-  const [selectedFiles, setSelectedFiles] = useState([]);
+const MediaProcess = () => {
+  const [selectedFile, setSelectedFile] = useState(null);
   const [uploadResult, setUploadResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [processId, setProcessId] = useState(null);
   const [mediaType, setMediaType] = useState('image');
 
-  const BASE_URL = 'https://e9b7-115-247-189-246.ngrok-free.app';
+  const BASE_URL = 'https://0e2b-2401-4900-2354-138d-8e6-22b7-f0e0-a488.ngrok-free.app';
 
-  const handleFileChange = (event) => {
-    const files = event.target.files;
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
     
-    if (files.length > 0) {
+    if (file) {
       const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
       const videoTypes = ['video/mp4', 'video/mpeg', 'video/quicktime', 'video/x-msvideo', 'video/x-ms-wmv'];
       const allowedTypes = [...imageTypes, ...videoTypes];
       
-      const validFiles = Array.from(files).filter(file => {
-        if (!allowedTypes.includes(file.type)) {
-          setError('Only image and video files are allowed');
-          return false;
-        }
-
-        const maxSize = 50 * 1024 * 1024;
-        if (file.size > maxSize) {
-          setError('File is too large. Maximum file size is 50MB');
-          return false;
-        }
-
-        return true;
-      });
-
-      if (validFiles.length > 0) {
-        const firstFile = validFiles[0];
-        const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
-        setMediaType(imageTypes.includes(firstFile.type) ? 'image' : 'video');
-        
-        setSelectedFiles(validFiles);
-        setError(null);
-      } else {
-        setSelectedFiles([]);
+      if (!allowedTypes.includes(file.type)) {
+        setError('Only image and video files are allowed');
+        setSelectedFile(null);
+        return;
       }
-    }
-  };
 
-  const saveToFirestore = async (data, originalFile) => {
-    try {
-      const firestoreData = {
-        ...data,
-        
-        timestamp: serverTimestamp(),
-        media_type: mediaType,
-        
-        file_name: originalFile ? originalFile.name : null,
-        file_size: originalFile ? originalFile.size : null,
-        file_type: originalFile ? originalFile.type : null
-      };
-
-      Object.keys(firestoreData).forEach(key => 
-        firestoreData[key] === undefined && delete firestoreData[key]
-      );
-
-      const docRef = await addDoc(collection(db, 'image_process_requests'), firestoreData);
-      console.log('Document written with ID: ', docRef.id);
-    } catch (error) {
-      console.error('Error saving to Firestore: ', error);
-      setError('Failed to save analysis results');
+      const maxSize = 50 * 1024 * 1024;
+      if (file.size > maxSize) {
+        setError('File is too large. Maximum file size is 50MB');
+        setSelectedFile(null);
+        return;
+      }
+      setMediaType(imageTypes.includes(file.type) ? 'image' : 'video');
+      setSelectedFile(file);
+      setError(null);
     }
   };
 
   const handleUpload = async () => {
-    if (selectedFiles.length === 0) {
+    if (!selectedFile) {
       setError('Please select a file');
       return;
     }
 
     const formData = new FormData();
-    formData.append('file', selectedFiles[0]);
+    formData.append('file', selectedFile);
 
     setIsLoading(true);
     setError(null);
@@ -179,11 +132,6 @@ const FileUploadPortal = () => {
 
       if (!processIdFromResponse) {
         setUploadResult(response.data);
-        
-        if (response.data) {
-          await saveToFirestore(response.data, selectedFiles[0]);
-        }
-        
         setIsLoading(false);
         return;
       }
@@ -216,9 +164,6 @@ const FileUploadPortal = () => {
       }
 
       setUploadResult(response.data);
-      
-      await saveToFirestore(response.data, selectedFiles[0]);
-      
       setIsLoading(false);
     } catch (err) {
       handleError(err);
@@ -238,36 +183,27 @@ const FileUploadPortal = () => {
   };
 
   return (
-    <div className="upload-portal bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700'" style={{ height: '400px' }}>
-      <h2 className="text-2xl font-bold mb-6 text-gray-100 text-center">
-        {mediaType === 'image' ? 'Image' : 'Video'} Upload and Analysis
+    <div className="p-4 max-w-lg mx-auto bg-white shadow-md rounded-lg">
+      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+        {mediaType === 'image' ? 'Litter' : 'Video'} Analysis
       </h2>
-
-      <input
-        type="file"
+      
+      <input 
+        type="file" 
         accept="image/jpeg,image/png,image/gif,image/webp,image/bmp,video/mp4,video/mpeg,video/quicktime,video/x-msvideo,video/x-ms-wmv"
-        onChange={handleFileChange}
-        className="mb-6 w-full text-gray-700 border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        onChange={handleFileSelect} 
+        className="mb-4 w-full border-2 border-dashed border-gray-300 p-2 rounded"
       />
-
-      <button
-        onClick={handleUpload}
-        disabled={selectedFiles.length === 0 || isLoading}
-        className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed"
+      
+      <button 
+        onClick={handleUpload} 
+        disabled={!selectedFile || isLoading}
+        className="w-full bg-blue-500 text-white p-3 rounded-lg 
+                   hover:bg-blue-600 transition-colors duration-300
+                   disabled:bg-gray-300 disabled:cursor-not-allowed"
       >
         {isLoading ? 'Processing...' : `Upload and Analyze ${mediaType}`}
       </button>
-
-      {selectedFiles.length > 0 && (
-        <div className="mt-6">
-          <h3 className="font-medium text-gray-200">Selected Files:</h3>
-          <ul className="list-disc list-inside pl-5">
-            {selectedFiles.map((file, index) => (
-              <li key={index} className="text-gray-100">{file.name}</li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {error && (
         <div className="text-red-500 mt-4 bg-red-50 p-3 rounded border border-red-200">
@@ -282,4 +218,4 @@ const FileUploadPortal = () => {
   );
 };
 
-export default FileUploadPortal;
+export default MediaProcess;

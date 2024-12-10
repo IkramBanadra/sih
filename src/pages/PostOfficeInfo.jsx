@@ -1,8 +1,7 @@
-import Header from "../components/common/Header";
-// import UserActivityHeatmap from "../components/image/UserActivityHeatmap";
-import FileUploadPortal from "../components/image/FileUploadPortal";
 import { motion } from "framer-motion";
 import { BarChart2, Home, Users} from "lucide-react";
+import Header from "../components/common/Header";
+import PostOfficeDetailsCard from "./PostOfficeDetailsCard";
 import { Menu, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
@@ -30,7 +29,7 @@ const SIDEBAR_ITEMS = [
   },
 ];
 
-const ImageUploadPage = () => {
+const PostOfficeInfo = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   return (
     <div className="flex h-screen bg-gray-900 text-gray-100 overflow-hidden">
@@ -82,16 +81,16 @@ const ImageUploadPage = () => {
         </div>
       </motion.div>
       <div className="flex-1 overflow-auto relative z-10">
-        <Header title="Users" />
+        <Header title="Post Office Info" />
 
         <main className="max-w-7xl mx-auto py-6 px-4 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mt-8">
-            {/* <UserActivityHeatmap /> */}
-            <FileUploadPortal />
+
+          <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
+            <PostOfficeDetailsCard />
           </div>
         </main>
       </div>
     </div>
   );
 };
-export default ImageUploadPage;
+export default PostOfficeInfo;

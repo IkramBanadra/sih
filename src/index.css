@@ -1,3 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body.dark {
+  scrollbar-color: #4a5568 #1a202c;
+  scrollbar-width: thin;
+}
+
+body.dark::-webkit-scrollbar {
+  width: 8px;
+}
+
+body.dark::-webkit-scrollbar-track {
+  background: #1a202c;
+}
+
+body.dark::-webkit-scrollbar-thumb {
+  background-color: #4a5568;
+  border-radius: 20px;
+}
