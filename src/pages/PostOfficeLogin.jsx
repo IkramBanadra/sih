@@ -34,7 +34,7 @@ function PostOfficeLogin() {
           Sign Up
         </button>
         <p className="noacc_signin">
-          Have an account?{" "}
+          Do Not Have an account?{" "}
           <Link to={"/accessReq"}>
             <strong>Request Access</strong>
           </Link>

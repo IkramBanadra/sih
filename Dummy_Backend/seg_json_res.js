@@ -50,48 +50,43 @@ app.post('/upload', upload.single('file'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded or invalid file format' });
   }
-
+  
   console.log('Image uploaded:', req.file);
+  
+  global.lastUploadedFile = req.file.filename;
+  
+  res.status(200).json({
+    message: 'Image uploaded successfully',
+    filename: req.file.filename
+  });
+});
 
-  // Create response data
-  const responseData = {
-    "intensity_results": {},
-    "type_results": {
-      "Plastic film": 96.34146341463415,
+app.get('/getRes', (req, res) => {
+  if (!global.lastUploadedFile) {
+    return res.status(400).json({ error: 'No recent file upload found' });
+  }
+
+  const response = {
+    uploaded_file: global.lastUploadedFile,
+    intensity_results: {},
+    type_results: {
+      "Plastic film": 96.34,
       "Single-use carrier bag": 100,
       "Clear plastic bottle": 75,
-      "Unlabeled litter": 50
+      "Unlabeled litter": 50,
     },
-    "litter_results": {},
-    "frequency": {
+    litter_results: {},
+    frequency: {
       "Plastic film": 41,
       "Clear plastic bottle": 4,
       "Single-use carrier bag": 1,
-      "Unlabeled litter": 1
+      "Unlabeled litter": 1,
     },
-    "garbage_percentage": "0.0",
-    "processed_video_URL": `http://127.0.0.1:${PORT}/upload/processed_processed.mp4`
+    garbage_percentage: "0.0",
+    processed_video_URL: `http://127.0.0.1:${PORT}/uploads/${global.lastUploadedFile}`,
   };
-
-  // Ensure responses directory exists
-  const responsesDir = 'responses';
-  if (!fs.existsSync(responsesDir)) {
-    fs.mkdirSync(responsesDir);
-  }
-
-  // Generate unique filename for response
-  const responseFilename = path.join(responsesDir, `response_${Date.now()}.json`);
   
-  // Write response to JSON file
-  fs.writeFileSync(responseFilename, JSON.stringify(responseData, null, 2));
-
-  // Send the JSON file for download
-  res.download(responseFilename, `response_${Date.now()}.json`, (err) => {
-    if (err) {
-      console.error('Download error:', err);
-      res.status(500).json({ error: 'Could not download response file' });
-    }
-  });
+  res.status(200).json(response);
 });
 
 app.use('/uploads', express.static('uploads'));

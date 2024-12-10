@@ -1,8 +1,7 @@
-import Header from "../components/common/Header";
-import UserActivityHeatmap from "../components/image/UserActivityHeatmap";
-import FileUploadPortal from "../components/image/FileUploadPortal";
 import { motion } from "framer-motion";
 import { BarChart2, Users} from "lucide-react";
+import Header from "../components/common/Header";
+import PostOfficeDetailsCard from "./PostOfficeDetailsCard"; // Import the new component
 import { Menu, ShieldCheck, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
@@ -15,12 +14,7 @@ const SIDEBAR_ITEMS = [
     color: "#355F2E",
     href: "/postOfficeSwachataPage",
   },
-  {
-    name: "Life",
-    icon: ShieldCheck,
-    color: "#8B5CF6",
-    href: "/postOfficeLifePage",
-  },
+  { name: "Life", icon: ShieldCheck, color: "#8B5CF6", href: "/postOfficeLifePage" },
   { name: "Image Uplodation", icon: Users, color: "#EC4899", href: "/postOfficeImgUpload" },
   {
     name: "Post Office Details",
@@ -30,7 +24,7 @@ const SIDEBAR_ITEMS = [
   },
 ];
 
-const ImageUploadPage = () => {
+const PostOfficeInfo = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   return (
     <div className="flex h-screen bg-gray-900 text-gray-100 overflow-hidden">
@@ -82,16 +76,17 @@ const ImageUploadPage = () => {
         </div>
       </motion.div>
       <div className="flex-1 overflow-auto relative z-10">
-        <Header title="Users" />
+        <Header title="Post Office Info" />
 
         <main className="max-w-7xl mx-auto py-6 px-4 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-            <UserActivityHeatmap />
-            <FileUploadPortal />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Add Post Office Details Card */}
+            <PostOfficeDetailsCard />
           </div>
         </main>
       </div>
     </div>
   );
 };
-export default ImageUploadPage;
+export default PostOfficeInfo;

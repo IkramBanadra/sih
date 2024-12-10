@@ -43,9 +43,9 @@ const ImageProcess = () => {
         return;
       }
 
-      const maxSize = 5 * 1024 * 1024;
+      const maxSize = 50 * 1024 * 1024;
       if (file.size > maxSize) {
-        setError('File is too large. Maximum file size is 5MB');
+        setError('File is too large. Maximum file size is 50MB');
         setSelectedFile(null);
         return;
       }
@@ -68,17 +68,13 @@ const ImageProcess = () => {
     setError(null);
 
     try {
-      await axios.post('http://127.0.0.1:8000/upload', formData, {
+      const response = await axios.post('http://127.0.0.1:8000/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
 
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const resultResponse = await axios.get('http://127.0.0.1:8000/getRes');
-      
-      setUploadResult(resultResponse.data);
+      setUploadResult(response.data);
     } catch (err) {
       if (err.response) {
         setError(`Server Error: ${err.response.status} - ${JSON.stringify(err.response.data)}`);

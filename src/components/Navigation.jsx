@@ -10,9 +10,8 @@ const Navigation = ({
     <div
       className={`
       fixed md:static 
-      top-16 left-0 right-0 
-      w-[90%] mx-auto 
       ${mobileMenuOpen ? "w-[90%]" : "w-[100%]"} 
+      top-16 left-0 right-0 mx-auto 
       ${mobileMenuOpen ? "block" : "hidden"} 
       md:block 
       bg-white/90 dark:bg-gray-800/90 md:bg-transparent

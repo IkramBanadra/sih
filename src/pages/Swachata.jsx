@@ -1,8 +1,9 @@
-import Header from "../components/common/Header";
-import UserActivityHeatmap from "../components/image/UserActivityHeatmap";
-import FileUploadPortal from "../components/image/FileUploadPortal";
 import { motion } from "framer-motion";
-import { BarChart2, Users} from "lucide-react";
+import { BarChart2, ShoppingBag, Users, Zap } from "lucide-react";
+import Header from "../components/common/Header";
+import StatCard from "../components/common/StatCard";
+import WasteDistributionChart from "../components/overview/WasteDistributionChart";
+import WasteOverviewCharts from "../components/overview/WasteOverviewCharts";
 import { Menu, ShieldCheck, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
@@ -15,12 +16,7 @@ const SIDEBAR_ITEMS = [
     color: "#355F2E",
     href: "/postOfficeSwachataPage",
   },
-  {
-    name: "Life",
-    icon: ShieldCheck,
-    color: "#8B5CF6",
-    href: "/postOfficeLifePage",
-  },
+  { name: "Life", icon: ShieldCheck, color: "#8B5CF6", href: "/postOfficeLifePage" },
   { name: "Image Uplodation", icon: Users, color: "#EC4899", href: "/postOfficeImgUpload" },
   {
     name: "Post Office Details",
@@ -30,7 +26,7 @@ const SIDEBAR_ITEMS = [
   },
 ];
 
-const ImageUploadPage = () => {
+const Swachata = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   return (
     <div className="flex h-screen bg-gray-900 text-gray-100 overflow-hidden">
@@ -82,16 +78,44 @@ const ImageUploadPage = () => {
         </div>
       </motion.div>
       <div className="flex-1 overflow-auto relative z-10">
-        <Header title="Users" />
+        <Header title="Swachata" />
 
         <main className="max-w-7xl mx-auto py-6 px-4 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-            <UserActivityHeatmap />
-            <FileUploadPortal />
+          {/* STATS */}
+          <motion.div
+            className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+          >
+            <StatCard
+              name="Waste Recycling Efficiency"
+              icon={Zap}
+              value="25%"
+              color="#6366F1"
+            />
+            <StatCard name="New Users" icon={Users} value="2" color="#8B5CF6" />
+            <StatCard
+              name="Total Garbage"
+              icon={ShoppingBag}
+              value="567"
+              color="#EC4899"
+            />
+            <StatCard
+              name="Cleanliness Rate"
+              icon={BarChart2}
+              value="12.5%"
+              color="#10B981"
+            />
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <WasteDistributionChart />
+            <WasteOverviewCharts />
           </div>
         </main>
       </div>
     </div>
   );
 };
-export default ImageUploadPage;
+export default Swachata;
