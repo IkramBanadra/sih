@@ -1,54 +1,88 @@
+import { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
-
-const categoryData = [
-	{ name: "Hazardous Waste", value: 4500 },
-	{ name: "Biodegarable", value: 3200 },
-	{ name: "Non Biodegradable", value: 2800 },
-	{ name: "others", value: 2100 },
-	
-];
-
-const COLORS = ["#B8001F", "#355F2E", "#0A3981", "#FFB200", "#FFB200"];
+import { collection, getDocs } from 'firebase/firestore';
+import db from '../../firebaseConfig'; // Adjust the import path as needed
+import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 const WasteDistributionChart = () => {
-	return (
-		<motion.div
-			className='bg-gray-1000 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700'
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ delay: 0.3 }}
-		>
-			<h2 className='text-lg font-medium mb-4 text-gray-100'>WASTE SEGREGATION METER</h2>
-			<div className='h-80'>
-				<ResponsiveContainer width={"100%"} height={"100%"}>
-					<PieChart>
-						<Pie
-							data={categoryData}
-							cx={"50%"}
-							cy={"50%"}
-							labelLine={false}
-							outerRadius={80}
-							fill='#8884d8'
-							dataKey='value'
-							label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-						>
-							{categoryData.map((entry, index) => (
-								<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-							))}
-						</Pie>
-						<Tooltip
-							contentStyle={{
-								backgroundColor: "rgba(31, 41, 55, 0.8)",
-								borderColor: "#4B5563",
-							}}
-							itemStyle={{ color: "#E5E7EB" }}
-						/>
-						<Legend />
-					</PieChart>
-				</ResponsiveContainer>
-			</div>
-		</motion.div>
-	);
+  const [categoryData, setCategoryData] = useState([]);
+
+  useEffect(() => {
+    const fetchUploadData = async () => {
+      try {
+        const imageProcessRef = collection(db, 'image_process_data');
+
+        const querySnapshot = await getDocs(imageProcessRef);
+
+        if (querySnapshot.empty) {
+          console.warn("No documents found in image_process_data");
+          return;
+        }
+
+        const emailCounts = {};
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const { email } = data;
+
+          if (!email) return; 
+          if (!emailCounts[email]) {
+            emailCounts[email] = 1;
+          } else {
+            emailCounts[email] += 1;
+          }
+        });
+
+        const processedData = Object.entries(emailCounts).map(([email, count]) => ({
+          name: email,
+          value: count,
+        }));
+
+        setCategoryData(processedData);
+      } catch (error) {
+        console.error("Error fetching upload data:", error);
+      }
+    };
+
+    fetchUploadData();
+  }, []);
+
+  const COLORS = categoryData.map(() => `#${Math.floor(Math.random() * 16777215).toString(16)}`);
+
+  return (
+    <motion.div
+      className='bg-gray-1000 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700'
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 }}
+	  style={{paddingBottom: '50px'}}
+    >
+      <h2 className='text-lg font-medium mb-4 text-gray-100'>UPLOAD DISTRIBUTION BY EMAIL</h2>
+      <div className='h-80 flex justify-center items-center'>
+        {categoryData.length > 0 ? (
+          <PieChart width={400} height={400}>
+            <Pie
+              data={categoryData}
+              cx={200}
+              cy={200}
+              labelLine={false}
+              label={({ name, value }) => `${name}: ${value}`}
+              outerRadius={120}
+              fill="#8884d8"
+              dataKey="value"
+            >
+              {categoryData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        ) : (
+          <p className='text-gray-300'>Loading chart data...</p>
+        )}
+      </div>
+    </motion.div>
+  );
 };
+
 export default WasteDistributionChart;

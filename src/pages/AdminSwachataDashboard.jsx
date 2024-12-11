@@ -14,8 +14,6 @@ import {
   AlertCircleIcon,
   Download,
   X,
-  Image as ImageIcon,
-  Info
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { collection, getDocs, query } from "firebase/firestore";
@@ -24,6 +22,8 @@ import db from "../firebaseConfig";
 import Header from "../components/common/Header";
 import StatCard from "../components/common/StatCard";
 import WasteOverviewCharts from "../components/overview/WasteOverviewCharts";
+import WasteDistributionChart from '../components/overview/WasteDistributionChart';
+import PostOfficeChart from '../components/overview/PostOfficeChart';
 
 const SIDEBAR_ITEMS = [
   {
@@ -138,10 +138,12 @@ const ImageDetailModal = ({ isOpen, onClose, imageData }) => {
                 <span className="font-semibold text-gray-300">Garbage Percentage:</span>
                 <span>{imageData.garbage_percentage ? `${imageData.garbage_percentage.toFixed(2)}%` : 'N/A'}</span>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 overflow-hidden">
                 <span style={{color: '#68369C'}}>&#8226;</span>
                 <span className="font-semibold text-gray-300">Image Description:</span>
-                <span>{imageData.Image_Description || 'N/A'}</span>
+                <div className="max-h-64 overflow-y-auto overflow-x-hidden flex-1">
+                  {imageData.Image_Description || 'N/A'}
+                </div>
               </div>
             </div>
           </div>
@@ -292,8 +294,10 @@ const AdminSwachataDashboard = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
             <WasteOverviewCharts />
+            <WasteDistributionChart />
+            <PostOfficeChart />
           </div>
-          <div className="grid grid-cols-1 gap-4 mt-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 mt-6 md:grid-cols-2 lg:grid-cols-3">
             {imageProcessData.map((item) => (
               <motion.div 
                 key={item.id} 

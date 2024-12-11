@@ -94,7 +94,7 @@ const FileUploadPortal = () => {
   const [processId, setProcessId] = useState(null);
   const [mediaType, setMediaType] = useState("image");
 
-  const BASE_URL = "https://6847-182-74-154-218.ngrok-free.app";
+  const BASE_URL = "https://079f-115-247-189-246.ngrok-free.app";
 
   const handleFileChange = (event) => {
     const files = event.target.files;
@@ -184,11 +184,14 @@ const FileUploadPortal = () => {
         (key) => firestoreData[key] === undefined && delete firestoreData[key]
       );
 
+      const collectionName = 
+        mediaType === "image" ? "image_process_requests" : "video_process_requests";
+
       const docRef = await addDoc(
-        collection(db, "image_process_requests"),
+        collection(db, collectionName),
         firestoreData
       );
-      console.log("Document written with ID: ", docRef.id);
+      console.log(`Document written with ID in ${collectionName}: `, docRef.id);
       Swal.fire({
         title: "Upload Successful!",
         text: "Your data has been uploaded successfully.",
