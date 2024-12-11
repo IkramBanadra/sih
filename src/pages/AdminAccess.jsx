@@ -1,4 +1,4 @@
-import { BarChart2, Menu, TrendingUp, Monitor, Home, Mail, User, X, Copy } from "lucide-react";
+import { BarChart2, Menu, TrendingUp, Monitor, Home, Mail, User, X, Copy, AlertCircleIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -40,17 +40,13 @@ const SIDEBAR_ITEMS = [
     href: "/adminMonitoring",
   },
   {
-    name: "Admin Access",
-    icon: User,
-    color: "#6EE7B7",
-    href: "/adminAccess",
+    name: "Admin Notification",
+    icon: AlertCircleIcon,
+    color: "#F3B90D",
+    href: "/adminNotifications",
   },
-  {
-    name: "Home",
-    icon: Home,
-    color: "#D9924C",
-    href: "/",
-  },
+  { name: "Admin Access", icon: User, color: "#6EE7B7", href: "/adminAccess" },
+  { name: "Home", icon: Home, color: "#D9924C", href: "/" },
 ];
 
 const generateRandomPassword = () => {

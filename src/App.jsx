@@ -16,6 +16,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import PostOfficeNotification from "./pages/PostOfficeNotification";
 import AdminPostOfficeCheck from "./pages/AdminPostOfficeCheck";
 import AdminAccess from "./pages/AdminAccess";
+import AdminNotifications from "./pages/AdminNotifications";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="/adminUsersDashboard" element={<AdminUsersDashboard />} />
         <Route path="/adminMonitoring" element={<AdminMonitoring />} />
         <Route path="/adminPostOfficeCheck" element={<AdminPostOfficeCheck />} />
+        <Route path="/adminNotifications" element={<AdminNotifications />} />
         <Route path="/adminAccess" element={<AdminAccess />} />
       </Route>
 

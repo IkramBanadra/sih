@@ -1,12 +1,17 @@
-import { BarChart2, Menu, TrendingUp, Monitor, Home, Mail, User } from "lucide-react";
+import {
+  BarChart2,
+  Menu,
+  TrendingUp,
+  Monitor,
+  Home,
+  Mail,
+  User,
+  AlertCircleIcon,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { 
-  collection, 
-  query, 
-  getDocs 
-} from "firebase/firestore";
+import { collection, query, getDocs } from "firebase/firestore";
 import db from "../firebaseConfig";
 
 const SIDEBAR_ITEMS = [
@@ -35,19 +40,14 @@ const SIDEBAR_ITEMS = [
     href: "/adminMonitoring",
   },
   {
-    name: "Admin Access",
-    icon: User,
-    color: "#6EE7B7",
-    href: "/adminAccess",
+    name: "Admin Notification",
+    icon: AlertCircleIcon,
+    color: "#F3B90D",
+    href: "/adminNotifications",
   },
-  {
-    name: "Home",
-    icon: Home,
-    color: "#D9924C",
-    href: "/",
-  },
+  { name: "Admin Access", icon: User, color: "#6EE7B7", href: "/adminAccess" },
+  { name: "Home", icon: Home, color: "#D9924C", href: "/" },
 ];
-
 const AdminPostOfficeCheck = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [postOffices, setPostOffices] = useState([]);
@@ -59,12 +59,12 @@ const AdminPostOfficeCheck = () => {
         const postOfficeRef = collection(db, "post");
         const q = query(postOfficeRef);
         const querySnapshot = await getDocs(q);
-        
-        const offices = querySnapshot.docs.map(doc => ({
+
+        const offices = querySnapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data()
+          ...doc.data(),
         }));
-        
+
         setPostOffices(offices);
         setLoading(false);
       } catch (error) {
@@ -129,7 +129,7 @@ const AdminPostOfficeCheck = () => {
 
       <div className="flex-1 overflow-auto relative z-10 p-6">
         <h1 className="text-3xl font-bold mb-6 text-white">Post Offices</h1>
-        
+
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -137,7 +137,7 @@ const AdminPostOfficeCheck = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {postOffices.map((office) => (
-              <motion.div 
+              <motion.div
                 key={office.id}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -146,12 +146,16 @@ const AdminPostOfficeCheck = () => {
               >
                 <div className="flex items-center mb-4">
                   <Mail className="text-blue-400 mr-3" size={24} />
-                  <h2 className="text-xl font-semibold text-white">{office.name}</h2>
+                  <h2 className="text-xl font-semibold text-white">
+                    {office.name}
+                  </h2>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center">
                     <span className="text-gray-400 mr-2">Email:</span>
-                    <span className="text-blue-300">{office.email || 'N/A'}</span>
+                    <span className="text-blue-300">
+                      {office.email || "N/A"}
+                    </span>
                   </div>
                 </div>
               </motion.div>

@@ -1,7 +1,13 @@
-import { useState } from 'react';
-import axios from 'axios';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useState } from "react";
+import axios from "axios";
+import { initializeApp } from "firebase/app";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+import Swal from "sweetalert2";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB8Rlo1r_1bMadGAs6WOcLRNj4iuW4kCR8",
@@ -9,7 +15,7 @@ const firebaseConfig = {
   projectId: "sih2024-a16f8",
   storageBucket: "sih2024-a16f8.firebasestorage.app",
   messagingSenderId: "52485487058",
-  appId: "1:52485487058:web:c2faa18225f507d44db00b"
+  appId: "1:52485487058:web:c2faa18225f507d44db00b",
 };
 
 const app = initializeApp(firebaseConfig);
@@ -20,9 +26,9 @@ const ResultValue = ({ value }) => {
     return <span className="text-gray-500">N/A</span>;
   }
 
-  if (typeof value === 'object') {
+  if (typeof value === "object") {
     if (Array.isArray(value)) {
-      return <span>{value.join(', ')}</span>;
+      return <span>{value.join(", ")}</span>;
     }
     return (
       <div className="bg-gray-50 p-2 rounded">
@@ -38,11 +44,13 @@ const ResultValue = ({ value }) => {
 
   return (
     <span>
-      {typeof value === 'number' 
-        ? value.toLocaleString() + 
-          (String(value).includes('.') 
-            ? (String(value).includes('%') ? '%' : '') 
-            : '')
+      {typeof value === "number"
+        ? value.toLocaleString() +
+          (String(value).includes(".")
+            ? String(value).includes("%")
+              ? "%"
+              : ""
+            : "")
         : String(value)}
     </span>
   );
@@ -65,7 +73,7 @@ const ResultsTable = ({ results }) => {
           {Object.entries(results).map(([key, value]) => (
             <tr key={key} className="hover:bg-gray-100">
               <td className="border p-2 text-gray-600 capitalize">
-                {key.replace(/_/g, ' ')}
+                {key.replace(/_/g, " ")}
               </td>
               <td className="border p-2 font-medium text-blue-700">
                 <ResultValue value={value} />
@@ -84,27 +92,39 @@ const FileUploadPortal = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [processId, setProcessId] = useState(null);
-  const [mediaType, setMediaType] = useState('image');
+  const [mediaType, setMediaType] = useState("image");
 
-  const BASE_URL = 'https://6847-182-74-154-218.ngrok-free.app';
+  const BASE_URL = "https://6847-182-74-154-218.ngrok-free.app";
 
   const handleFileChange = (event) => {
     const files = event.target.files;
-    
+
     if (files.length > 0) {
-      const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
-      const videoTypes = ['video/mp4', 'video/mpeg', 'video/quicktime', 'video/x-msvideo', 'video/x-ms-wmv'];
+      const imageTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/bmp",
+      ];
+      const videoTypes = [
+        "video/mp4",
+        "video/mpeg",
+        "video/quicktime",
+        "video/x-msvideo",
+        "video/x-ms-wmv",
+      ];
       const allowedTypes = [...imageTypes, ...videoTypes];
-      
-      const validFiles = Array.from(files).filter(file => {
+
+      const validFiles = Array.from(files).filter((file) => {
         if (!allowedTypes.includes(file.type)) {
-          setError('Only image and video files are allowed');
+          setError("Only image and video files are allowed");
           return false;
         }
 
         const maxSize = 50 * 1024 * 1024;
         if (file.size > maxSize) {
-          setError('File is too large. Maximum file size is 50MB');
+          setError("File is too large. Maximum file size is 50MB");
           return false;
         }
 
@@ -113,9 +133,15 @@ const FileUploadPortal = () => {
 
       if (validFiles.length > 0) {
         const firstFile = validFiles[0];
-        const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
-        setMediaType(imageTypes.includes(firstFile.type) ? 'image' : 'video');
-        
+        const imageTypes = [
+          "image/jpeg",
+          "image/png",
+          "image/gif",
+          "image/webp",
+          "image/bmp",
+        ];
+        setMediaType(imageTypes.includes(firstFile.type) ? "image" : "video");
+
         setSelectedFiles(validFiles);
         setError(null);
       } else {
@@ -126,78 +152,93 @@ const FileUploadPortal = () => {
 
   const saveToFirestore = async (data, originalFile) => {
     try {
-      const authenticatedUserStr = localStorage.getItem('authenticatedUser');
+      const authenticatedUserStr = localStorage.getItem("authenticatedUser");
       let userEmail = null;
-  
+
       try {
         if (authenticatedUserStr) {
           const authenticatedUser = JSON.parse(authenticatedUserStr);
           userEmail = authenticatedUser.email;
         }
       } catch (parseError) {
-        console.error('Error parsing authenticatedUser from localStorage:', parseError);
+        console.error(
+          "Error parsing authenticatedUser from localStorage:",
+          parseError
+        );
       }
-  
+
       const firestoreData = {
         ...data,
-        
+
         timestamp: serverTimestamp(),
         media_type: mediaType,
-        
+
         file_name: originalFile ? originalFile.name : null,
         file_size: originalFile ? originalFile.size : null,
         file_type: originalFile ? originalFile.type : null,
-        
-        user_email: userEmail
+
+        email: userEmail,
       };
-  
-      Object.keys(firestoreData).forEach(key => 
-        firestoreData[key] === undefined && delete firestoreData[key]
+
+      Object.keys(firestoreData).forEach(
+        (key) => firestoreData[key] === undefined && delete firestoreData[key]
       );
-  
-      const docRef = await addDoc(collection(db, 'image_process_requests'), firestoreData);
-      console.log('Document written with ID: ', docRef.id);
+
+      const docRef = await addDoc(
+        collection(db, "image_process_requests"),
+        firestoreData
+      );
+      console.log("Document written with ID: ", docRef.id);
+      Swal.fire({
+        title: "Upload Successful!",
+        text: "Your data has been uploaded successfully.",
+        icon: "success",
+        confirmButtonText: "Cool",
+        confirmButtonColor: "#3085d6",
+        customClass: {
+          popup: "custom-swal-popup",
+          title: "custom-swal-title",
+          content: "custom-swal-content",
+        },
+      });
     } catch (error) {
-      console.error('Error saving to Firestore: ', error);
-      setError('Failed to save analysis results');
+      console.error("Error saving to Firestore: ", error);
+      setError("Failed to save analysis results");
     }
   };
 
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
-      setError('Please select a file');
+      setError("Please select a file");
       return;
     }
 
     const formData = new FormData();
-    formData.append('file', selectedFiles[0]);
+    formData.append("file", selectedFiles[0]);
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const endpoint = mediaType === 'image' 
-        ? '/process-image' 
-        : '/process-video';
+      const endpoint =
+        mediaType === "image" ? "/process-image" : "/process-video";
 
       const response = await axios.post(`${BASE_URL}${endpoint}`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+          "Content-Type": "multipart/form-data",
+        },
       });
 
-      const processIdFromResponse = 
-        response.data.process_id || 
-        response.data.processId || 
-        response.data.id;
+      const processIdFromResponse =
+        response.data.process_id || response.data.processId || response.data.id;
 
       if (!processIdFromResponse) {
         setUploadResult(response.data);
-        
+
         if (response.data) {
           await saveToFirestore(response.data, selectedFiles[0]);
         }
-        
+
         setIsLoading(false);
         return;
       }
@@ -217,22 +258,23 @@ const FileUploadPortal = () => {
     }
 
     try {
-      const endpoint = mediaType === 'image' 
-        ? '/process-image' 
-        : '/video-process';
+      const endpoint =
+        mediaType === "image" ? "/process-image" : "/video-process";
 
-      const response = await axios.get(`${BASE_URL}${endpoint}?process_id=${processId}`);
-      
+      const response = await axios.get(
+        `${BASE_URL}${endpoint}?process_id=${processId}`
+      );
+
       if (!response.data || Object.keys(response.data).length === 0) {
-        setError('No results found. Please try uploading again.');
+        setError("No results found. Please try uploading again.");
         setIsLoading(false);
         return;
       }
 
       setUploadResult(response.data);
-      
+
       await saveToFirestore(response.data, selectedFiles[0]);
-      
+
       setIsLoading(false);
     } catch (err) {
       handleError(err);
@@ -241,20 +283,29 @@ const FileUploadPortal = () => {
 
   const handleError = (err) => {
     if (err.response) {
-      setError(`Server Error: ${err.response.status} - ${JSON.stringify(err.response.data)}`);
+      setError(
+        `Server Error: ${err.response.status} - ${JSON.stringify(
+          err.response.data
+        )}`
+      );
     } else if (err.request) {
-      setError('No response received from the server. Please check your network connection.');
+      setError(
+        "No response received from the server. Please check your network connection."
+      );
     } else {
-      setError('Error processing the request: ' + err.message);
+      setError("Error processing the request: " + err.message);
     }
-    console.error('Error:', err);
+    console.error("Error:", err);
     setIsLoading(false);
   };
 
   return (
-    <div className="upload-portal bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700'" style={{ height: '400px' }}>
+    <div
+      className="upload-portal bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700'"
+      style={{ height: "400px" }}
+    >
       <h2 className="text-2xl font-bold mb-6 text-gray-100 text-center">
-        {mediaType === 'image' ? 'Image' : 'Video'} Upload and Analysis
+        {mediaType === "image" ? "Image" : "Video"} Upload and Analysis
       </h2>
 
       <input
@@ -269,7 +320,7 @@ const FileUploadPortal = () => {
         disabled={selectedFiles.length === 0 || isLoading}
         className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed"
       >
-        {isLoading ? 'Processing...' : `Upload and Analyze ${mediaType}`}
+        {isLoading ? "Processing..." : `Upload and Analyze ${mediaType}`}
       </button>
 
       {selectedFiles.length > 0 && (
@@ -277,7 +328,9 @@ const FileUploadPortal = () => {
           <h3 className="font-medium text-gray-200">Selected Files:</h3>
           <ul className="list-disc list-inside pl-5">
             {selectedFiles.map((file, index) => (
-              <li key={index} className="text-gray-100">{file.name}</li>
+              <li key={index} className="text-gray-100">
+                {file.name}
+              </li>
             ))}
           </ul>
         </div>
@@ -289,9 +342,7 @@ const FileUploadPortal = () => {
         </div>
       )}
 
-      {uploadResult && (
-        <ResultsTable results={uploadResult} />
-      )}
+      {uploadResult && <ResultsTable results={uploadResult} />}
     </div>
   );
 };

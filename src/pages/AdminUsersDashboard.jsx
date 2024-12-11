@@ -6,6 +6,7 @@ import {
   Home,
   Mail,
   User,
+  AlertCircleIcon,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -48,17 +49,13 @@ const SIDEBAR_ITEMS = [
     href: "/adminMonitoring",
   },
   {
-    name: "Admin Access",
-    icon: User,
-    color: "#6EE7B7",
-    href: "/adminAccess",
+    name: "Admin Notification",
+    icon: AlertCircleIcon,
+    color: "#F3B90D",
+    href: "/adminNotifications",
   },
-  {
-    name: "Home",
-    icon: Home,
-    color: "#D9924C",
-    href: "/",
-  },
+  { name: "Admin Access", icon: User, color: "#6EE7B7", href: "/adminAccess" },
+  { name: "Home", icon: Home, color: "#D9924C", href: "/" },
 ];
 
 const generatePassword = () => {

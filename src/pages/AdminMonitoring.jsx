@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import {
   BarChart2,
   Menu,
@@ -6,19 +7,12 @@ import {
   Home,
   Mail,
   User,
+  AlertCircleIcon,
 } from "lucide-react";
-import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import Header from "../components/common/Header";
-import { 
-  collection, 
-  getDocs, 
-  deleteDoc, 
-  doc, 
-  addDoc 
-} from "firebase/firestore";
-import db from "../firebaseConfig";
+import { Chart, registerables } from "chart.js";
+Chart.register(...registerables);
 
 const SIDEBAR_ITEMS = [
   {
@@ -46,84 +40,129 @@ const SIDEBAR_ITEMS = [
     href: "/adminMonitoring",
   },
   {
-    name: "Admin Access",
-    icon: User,
-    color: "#6EE7B7",
-    href: "/adminAccess",
+    name: "Admin Notification",
+    icon: AlertCircleIcon,
+    color: "#F3B90D",
+    href: "/adminNotifications",
   },
-  {
-    name: "Home",
-    icon: Home,
-    color: "#D9924C",
-    href: "/",
-  },
+  { name: "Admin Access", icon: User, color: "#6EE7B7", href: "/adminAccess" },
+  { name: "Home", icon: Home, color: "#D9924C", href: "/" },
 ];
 
 const AdminMonitoring = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [imageRequests, setImageRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [wsConnected, setWsConnected] = useState(false);
+  const [imageSource, setImageSource] = useState("");
+  const chartRef = useRef(null);
+  const chartInstanceRef = useRef(null);
 
   useEffect(() => {
-    fetchImageProcessRequests();
-  }, []);
+    const ws = new WebSocket("ws://127.0.0.1:8000/ws");
 
-  const fetchImageProcessRequests = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "image_process_requests"));
-      const requests = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setImageRequests(requests);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching image process requests: ", error);
-      setLoading(false);
-    }
-  };
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+      setWsConnected(true);
+    };
 
-  const handleAccept = async (request) => {
-    try {
-      await addDoc(collection(db, "image_process_data"), {
-        ...request,
-        processedAt: new Date()
-      });
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
 
-      await deleteDoc(doc(db, "image_process_requests", request.id));
-
-      fetchImageProcessRequests();
-    } catch (error) {
-      console.error("Error processing accept request: ", error);
-    }
-  };
-
-  const handleDecline = async (request) => {
-    try {
-      if (request.email && request.file_name) {
-        await addDoc(collection(db, "declined_data"), {
-          email: request.email,
-          file_name: request.file_name,
-          declinedAt: new Date()
-        });
-  
-        await deleteDoc(doc(db, "image_process_requests", request.id));
-  
-        fetchImageProcessRequests();
-      } else {
-        console.error("Missing email or file_name in the request");
+      if (data.processed_image) {
+        setImageSource(`data:image/jpeg;base64,${data.processed_image}`);
       }
-    } catch (error) {
-      console.error("Error processing decline request: ", error);
+
+      if (chartInstanceRef.current) {
+        const currentTime = new Date().toLocaleTimeString();
+        const chart = chartInstanceRef.current;
+
+        chart.data.labels.push(currentTime);
+        chart.data.datasets[0].data.push(data.intensity.garbage_percentage);
+        chart.data.datasets[1].data.push(data.type.object_percentages[0] || 0);
+        chart.data.datasets[2].data.push(
+          data.litter.object_percentages[0] || 0
+        );
+
+        if (chart.data.labels.length > 20) {
+          chart.data.labels.shift();
+          chart.data.datasets.forEach((dataset) => dataset.data.shift());
+        }
+
+        chart.update();
+      }
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket disconnected");
+      setWsConnected(false);
+    };
+
+    if (chartRef.current) {
+      const ctx = chartRef.current.getContext("2d");
+      chartInstanceRef.current = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Garbage Percentage",
+              data: [],
+              borderColor: "red",
+              borderWidth: 2,
+              fill: false,
+            },
+            {
+              label: "Object Percentages (Type)",
+              data: [],
+              borderColor: "blue",
+              borderWidth: 2,
+              fill: false,
+            },
+            {
+              label: "Object Percentages (Litter)",
+              data: [],
+              borderColor: "green",
+              borderWidth: 2,
+              fill: false,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: "Time",
+              },
+            },
+            y: {
+              title: {
+                display: true,
+                text: "Percentage",
+              },
+              min: 0,
+              max: 100,
+            },
+          },
+        },
+      });
     }
-  };
+
+    return () => {
+      ws.close();
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+      }
+    };
+  }, []);
 
   return (
     <div className="flex h-screen bg-gray-900 text-gray-100 overflow-hidden">
       <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-900 opacity-80" />
-        <div className="absolute inset-0 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-gradient-to-br opacity-80" />
+        <div className="absolute inset-0" />
       </div>
+
       <motion.div
         className={`relative z-10 transition-all duration-300 ease-in-out flex-shrink-0 ${
           isSidebarOpen ? "w-64" : "w-20"
@@ -167,87 +206,72 @@ const AdminMonitoring = () => {
           </nav>
         </div>
       </motion.div>
-      <div className="flex-1 overflow-auto relative z-10">
-        <Header title="Admin Monitoring" />
 
-        <section className="flex flex-col justify-center antialiased bg-gray-900 text-gray-600 min-h-screen p-4">
-          <div className="w-full">
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <p className="text-white text-xl">Loading...</p>
-              </div>
-            ) : imageRequests.length === 0 ? (
-              <div className="flex justify-center items-center h-64 bg-gray-800 rounded-lg shadow-lg">
-                <p className="text-white text-2xl font-bold text-center">
-                  No Post Office has Processed any Image
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-wrap justify-center gap-4">
-                {imageRequests.map((request) => (
-                  <div key={request.id} className="w-[90%] md:w-[90%] lg:w-[90%]">
-                    <div className="bg-indigo-600 shadow-lg rounded-lg">
-                      <div className="px-6 py-5">
-                        <div className="flex items-start">
-                          <svg
-                            className="fill-current flex-shrink-0 mr-5"
-                            width="30"
-                            height="30"
-                            viewBox="0 0 30 30"
-                          >
-                            <path
-                              className="text-indigo-300"
-                              d="m16 14.883 14-7L14.447.106a1 1 0 0 0-.895 0L0 6.883l16 8Z"
-                            />
-                            <path
-                              className="text-indigo-200"
-                              d="M16 14.619v15l13.447-6.724A.998.998 0 0 0 30 22V7.619l-14 7Z"
-                            />
-                            <path
-                              className="text-indigo-500"
-                              d="m16 14.619-16-8V21c0 .379.214.725.553.895L16 29.619v-15Z"
-                            />
-                          </svg>
-                          <div className="flex-grow truncate">
-                            <div className="w-full sm:flex justify-between items-center mb-3">
-                              <h2 className="text-2xl leading-snug font-extrabold text-gray-50 truncate mb-1 sm:mb-0">
-                                {request.email}
-                              </h2>
-                            </div>
-                            <div className="flex items-end justify-between whitespace-normal">
-                              <div className="max-w-md text-indigo-100">
-                                <p className="mb-2">
-                                  Garbage Percentage: {request.garbage_percentage || 'N/A'}
-                                </p>
-                                <p className="mb-2">
-                                  Media Type: {request.media_type || 'N/A'}
-                                </p>
-                              </div>
-                              <div className="flex space-x-2">
-                                <button
-                                  onClick={() => handleAccept(request)}
-                                  className="flex-shrink-0 flex items-center justify-center text-green-600 w-20 h-10 rounded-full bg-gradient-to-b from-green-50 to-green-100 hover:from-white hover:to-green-50 focus:outline-none focus-visible:from-white focus-visible:to-white transition duration-150"
-                                >
-                                  <span className="block font-bold">Accept</span>
-                                </button>
-                                <button
-                                  onClick={() => handleDecline(request)}
-                                  className="flex-shrink-0 flex items-center justify-center text-red-600 w-20 h-10 rounded-full bg-gradient-to-b from-red-50 to-red-100 hover:from-white hover:to-red-50 focus:outline-none focus-visible:from-white focus-visible:to-white transition duration-150"
-                                >
-                                  <span className="block font-bold">Decline</span>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+      <div className="flex-grow p-6 space-y-6 overflow-y-auto">
+        <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
+          <h1 className="text-2xl font-bold mb-4 text-white">
+            Live Monitoring Dashboard
+          </h1>
+
+          <div className="mb-4">
+            <span
+              className={`px-3 py-1 rounded-full text-sm ${
+                wsConnected
+                  ? "bg-green-500 text-white"
+                  : "bg-red-500 text-white"
+              }`}
+            >
+              {wsConnected ? "WebSocket Connected" : "WebSocket Disconnected"}
+            </span>
           </div>
-        </section>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex items-center justify-center flex-col">
+              <h2 className="text-xl font-semibold mb-4 text-left w-full">
+                CCTV Feed
+              </h2>
+              {wsConnected ? (
+                <img
+                  src={imageSource || "/api/placeholder/640/480"}
+                  alt="CCTV Feed"
+                  className="w-full rounded-lg shadow-lg border-2 border-gray-700"
+                />
+              ) : (
+                <div className="w-[300px] h-[280px] flex flex-col items-center justify-center bg-red-50 border-2 border-red-200 rounded-lg p-6 text-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-16 w-16 text-red-500 mb-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                  <h3 className="text-xl font-bold text-red-700 mb-2">
+                    WebSocket Disconnected
+                  </h3>
+                  <p className="text-red-600 max-w-md">
+                    Unable to retrieve camera feed. Please check your network
+                    connection.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Live Analytics</h2>
+              <canvas
+                ref={chartRef}
+                className="w-full h-96 bg-gray-700 rounded-lg p-4"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

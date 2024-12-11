@@ -26,7 +26,6 @@ const SIDEBAR_ITEMS = [
     color: "#EC4899",
     href: "/postOfficeImgUpload",
   },
-  
   {
     name: "Post Office Notification",
     icon: AlertCircleIcon,
@@ -53,7 +52,6 @@ const PostOfficeNotification = () => {
   const [authenticatedUser, setAuthenticatedUser] = useState(null);
 
   useEffect(() => {
-    // Retrieve authenticated user from localStorage
     const storedUser = localStorage.getItem('authenticatedUser');
     if (storedUser) {
       setAuthenticatedUser(JSON.parse(storedUser));
