@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { BarChart2, Home, Users} from "lucide-react";
+import { AlertCircleIcon, BarChart2, Home, Users} from "lucide-react";
 import Header from "../components/common/Header";
 import PostOfficeDetailsCard from "./PostOfficeDetailsCard";
 import { Menu, LayoutDashboard } from "lucide-react";
@@ -14,11 +14,22 @@ const SIDEBAR_ITEMS = [
     color: "#355F2E",
     href: "/postOfficeSwachataPage",
   },
-  { name: "Image Uplodation", icon: Users, color: "#EC4899", href: "/postOfficeImgUpload" },
+  {
+    name: "Image Uplodation",
+    icon: Users,
+    color: "#EC4899",
+    href: "/postOfficeImgUpload",
+  },
+  {
+    name: "Post Office Notification",
+    icon: AlertCircleIcon,
+    color: "#F3B90D",
+    href: "/postOfficeNotification",
+  },
   {
     name: "Post Office Details",
     icon: LayoutDashboard,
-    color: "#EC4899",
+    color: "#AA88F8",
     href: "/postOfficeInfo",
   },
   {

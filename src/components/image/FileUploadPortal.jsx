@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -86,7 +86,7 @@ const FileUploadPortal = () => {
   const [processId, setProcessId] = useState(null);
   const [mediaType, setMediaType] = useState('image');
 
-  const BASE_URL = 'https://e9b7-115-247-189-246.ngrok-free.app';
+  const BASE_URL = 'https://6847-182-74-154-218.ngrok-free.app';
 
   const handleFileChange = (event) => {
     const files = event.target.files;
@@ -126,6 +126,18 @@ const FileUploadPortal = () => {
 
   const saveToFirestore = async (data, originalFile) => {
     try {
+      const authenticatedUserStr = localStorage.getItem('authenticatedUser');
+      let userEmail = null;
+  
+      try {
+        if (authenticatedUserStr) {
+          const authenticatedUser = JSON.parse(authenticatedUserStr);
+          userEmail = authenticatedUser.email;
+        }
+      } catch (parseError) {
+        console.error('Error parsing authenticatedUser from localStorage:', parseError);
+      }
+  
       const firestoreData = {
         ...data,
         
@@ -134,13 +146,15 @@ const FileUploadPortal = () => {
         
         file_name: originalFile ? originalFile.name : null,
         file_size: originalFile ? originalFile.size : null,
-        file_type: originalFile ? originalFile.type : null
+        file_type: originalFile ? originalFile.type : null,
+        
+        user_email: userEmail
       };
-
+  
       Object.keys(firestoreData).forEach(key => 
         firestoreData[key] === undefined && delete firestoreData[key]
       );
-
+  
       const docRef = await addDoc(collection(db, 'image_process_requests'), firestoreData);
       console.log('Document written with ID: ', docRef.id);
     } catch (error) {

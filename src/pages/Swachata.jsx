@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
-import { BarChart2, Home, Users} from "lucide-react";
+import { AlertCircleIcon, BarChart2, Home, Users } from "lucide-react";
 import Header from "../components/common/Header";
 import { Menu, LayoutDashboard } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import db from "../firebaseConfig";
 
 const SIDEBAR_ITEMS = [
   {
@@ -13,11 +15,22 @@ const SIDEBAR_ITEMS = [
     color: "#355F2E",
     href: "/postOfficeSwachataPage",
   },
-  { name: "Image Uplodation", icon: Users, color: "#EC4899", href: "/postOfficeImgUpload" },
+  {
+    name: "Image Uplodation",
+    icon: Users,
+    color: "#EC4899",
+    href: "/postOfficeImgUpload",
+  },
+  {
+    name: "Post Office Notification",
+    icon: AlertCircleIcon,
+    color: "#F3B90D",
+    href: "/postOfficeNotification",
+  },
   {
     name: "Post Office Details",
     icon: LayoutDashboard,
-    color: "#EC4899",
+    color: "#AA88F8",
     href: "/postOfficeInfo",
   },
   {
@@ -30,6 +43,39 @@ const SIDEBAR_ITEMS = [
 
 const Swachata = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [processedData, setProcessedData] = useState([]);
+  const [authenticatedUser, setAuthenticatedUser] = useState(null);
+
+  useEffect(() => {
+    // Retrieve authenticated user from local storage
+    const storedUser = localStorage.getItem("authenticatedUser");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setAuthenticatedUser(parsedUser);
+
+      // Fetch data from Firestore based on authenticated user's email
+      const fetchProcessedData = async () => {
+        try {
+          const q = query(
+            collection(db, "image_process_data"),
+            where("email", "==", parsedUser.email)
+          );
+
+          const querySnapshot = await getDocs(q);
+          const data = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+
+          setProcessedData(data);
+        } catch (error) {
+          console.error("Error fetching processed data:", error);
+        }
+      };
+
+      fetchProcessedData();
+    }
+  }, []);
 
   return (
     <div className="flex h-screen bg-gray-900 text-gray-100 overflow-hidden">
@@ -86,8 +132,8 @@ const Swachata = () => {
         <section className="flex flex-col justify-center antialiased bg-gray-900 text-gray-600 min-h-screen p-4">
           <div className="w-full">
             <div className="flex flex-wrap justify-center gap-4">
-              {[1, 2, 3, 4].map((index) => (
-                <div key={index} className="w-[90%] md:w-[90%] lg:w-[90%]">
+              {processedData.map((item, index) => (
+                <div key={item.id} className="w-[90%] md:w-[90%] lg:w-[90%]">
                   <div className="bg-indigo-600 shadow-lg rounded-lg">
                     <div className="px-6 py-5">
                       <div className="flex items-start">
@@ -113,25 +159,17 @@ const Swachata = () => {
                         <div className="flex-grow truncate">
                           <div className="w-full sm:flex justify-between items-center mb-3">
                             <h2 className="text-2xl leading-snug font-extrabold text-gray-50 truncate mb-1 sm:mb-0">
-                              Simple Design Tips {index}
+                              {item.file_name}
                             </h2>
                           </div>
                           <div className="flex items-end justify-between whitespace-normal">
                             <div className="max-w-md text-indigo-100">
                               <p className="mb-2">
-                                Lorem ipsum dolor sit amet, consecte adipiscing
-                                elit sed do eiusmod tempor incididunt ut labore
-                                et dolore.
+                                Garbage Percentage: {Math.floor(item.garbage_percentage)}%
+                                <br />
+                                Media Type: {item.media_type}
                               </p>
                             </div>
-                            <a
-                              className="flex-shrink-0 flex items-center justify-center text-indigo-600 w-10 h-10 rounded-full bg-gradient-to-b from-indigo-50 to-indigo-100 hover:from-white hover:to-indigo-50 focus:outline-none focus-visible:from-white focus-visible:to-white transition duration-150 ml-2"
-                              href="#0"
-                            >
-                              <span className="block font-bold">
-                                <span className="sr-only">Read more</span> --
-                              </span>
-                            </a>
                           </div>
                         </div>
                       </div>

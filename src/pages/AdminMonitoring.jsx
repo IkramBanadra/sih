@@ -100,15 +100,19 @@ const AdminMonitoring = () => {
 
   const handleDecline = async (request) => {
     try {
-      await addDoc(collection(db, "declined_data"), {
-        email: request.email,
-        file_name: request.file_name,
-        declinedAt: new Date()
-      });
-
-      await deleteDoc(doc(db, "image_process_requests", request.id));
-
-      fetchImageProcessRequests();
+      if (request.email && request.file_name) {
+        await addDoc(collection(db, "declined_data"), {
+          email: request.email,
+          file_name: request.file_name,
+          declinedAt: new Date()
+        });
+  
+        await deleteDoc(doc(db, "image_process_requests", request.id));
+  
+        fetchImageProcessRequests();
+      } else {
+        console.error("Missing email or file_name in the request");
+      }
     } catch (error) {
       console.error("Error processing decline request: ", error);
     }
