@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { initializeApp } from "firebase/app";
 import {
@@ -6,6 +6,8 @@ import {
   collection,
   addDoc,
   serverTimestamp,
+  doc,
+  getDoc
 } from "firebase/firestore";
 import Swal from "sweetalert2";
 
@@ -85,7 +87,6 @@ const ResultsTable = ({ results }) => {
     </div>
   );
 };
-
 const FileUploadPortal = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploadResult, setUploadResult] = useState(null);
@@ -93,8 +94,42 @@ const FileUploadPortal = () => {
   const [error, setError] = useState(null);
   const [processId, setProcessId] = useState(null);
   const [mediaType, setMediaType] = useState("image");
+  const [baseUrl, setBaseUrl] = useState("");
+  const [isUrlLoading, setIsUrlLoading] = useState(true);
 
-  const BASE_URL = "https://079f-115-247-189-246.ngrok-free.app";
+  useEffect(() => {
+    const fetchTunnelUrl = async () => {
+      try {
+        const tunnelDocRef = doc(db, "ml_model_tunnel", "tunnel_url");
+        const tunnelDoc = await getDoc(tunnelDocRef);
+        
+        if (tunnelDoc.exists()) {
+          const tunnelUrl = tunnelDoc.data().url;
+          
+          if (!tunnelUrl) {
+            throw new Error("Tunnel URL is empty");
+          }
+
+          setBaseUrl(tunnelUrl.trim());
+          setIsUrlLoading(false);
+        } else {
+          throw new Error("No tunnel URL document found");
+        }
+      } catch (error) {
+        console.error("Error fetching tunnel URL:", error);
+        setError("Failed to fetch ML model tunnel URL. Please contact administrator.");
+        setIsUrlLoading(false);
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'URL Retrieval Failed',
+          text: 'Could not retrieve ML model tunnel URL. Please check your configuration.',
+        });
+      }
+    };
+
+    fetchTunnelUrl();
+  }, []);
 
   const handleFileChange = (event) => {
     const files = event.target.files;
@@ -211,6 +246,16 @@ const FileUploadPortal = () => {
   };
 
   const handleUpload = async () => {
+    if (isUrlLoading) {
+      setError("Waiting for tunnel URL to load. Please try again shortly.");
+      return;
+    }
+
+    if (!baseUrl) {
+      setError("No ML model tunnel URL available. Please contact administrator.");
+      return;
+    }
+
     if (selectedFiles.length === 0) {
       setError("Please select a file");
       return;
@@ -226,7 +271,7 @@ const FileUploadPortal = () => {
       const endpoint =
         mediaType === "image" ? "/process-image" : "/process-video";
 
-      const response = await axios.post(`${BASE_URL}${endpoint}`, formData, {
+      const response = await axios.post(`${baseUrl}${endpoint}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -255,6 +300,11 @@ const FileUploadPortal = () => {
   };
 
   const fetchResults = async () => {
+    if (!baseUrl) {
+      setError("No ML model tunnel URL available. Please contact administrator.");
+      return;
+    }
+
     if (!processId) {
       handleUpload();
       return;
@@ -265,7 +315,7 @@ const FileUploadPortal = () => {
         mediaType === "image" ? "/process-image" : "/video-process";
 
       const response = await axios.get(
-        `${BASE_URL}${endpoint}?process_id=${processId}`
+        `${baseUrl}${endpoint}?process_id=${processId}`
       );
 
       if (!response.data || Object.keys(response.data).length === 0) {
@@ -311,41 +361,49 @@ const FileUploadPortal = () => {
         {mediaType === "image" ? "Image" : "Video"} Upload and Analysis
       </h2>
 
-      <input
-        type="file"
-        accept="image/jpeg,image/png,image/gif,image/webp,image/bmp,video/mp4,video/mpeg,video/quicktime,video/x-msvideo,video/x-ms-wmv"
-        onChange={handleFileChange}
-        className="mb-6 w-full text-gray-700 border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-
-      <button
-        onClick={handleUpload}
-        disabled={selectedFiles.length === 0 || isLoading}
-        className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed"
-      >
-        {isLoading ? "Processing..." : `Upload and Analyze ${mediaType}`}
-      </button>
-
-      {selectedFiles.length > 0 && (
-        <div className="mt-6">
-          <h3 className="font-medium text-gray-200">Selected Files:</h3>
-          <ul className="list-disc list-inside pl-5">
-            {selectedFiles.map((file, index) => (
-              <li key={index} className="text-gray-100">
-                {file.name}
-              </li>
-            ))}
-          </ul>
+      {isUrlLoading ? (
+        <div className="flex justify-center items-center h-full">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
-      )}
+      ) : (
+        <>
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp,image/bmp,video/mp4,video/mpeg,video/quicktime,video/x-msvideo,video/x-ms-wmv"
+            onChange={handleFileChange}
+            className="mb-6 w-full text-gray-700 border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
 
-      {error && (
-        <div className="text-red-500 mt-4 bg-red-50 p-3 rounded border border-red-200">
-          {error}
-        </div>
-      )}
+          <button
+            onClick={handleUpload}
+            disabled={selectedFiles.length === 0 || isLoading || !baseUrl}
+            className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            {isLoading ? "Processing..." : `Upload and Analyze ${mediaType}`}
+          </button>
 
-      {uploadResult && <ResultsTable results={uploadResult} />}
+          {selectedFiles.length > 0 && (
+            <div className="mt-6">
+              <h3 className="font-medium text-gray-200">Selected Files:</h3>
+              <ul className="list-disc list-inside pl-5">
+                {selectedFiles.map((file, index) => (
+                  <li key={index} className="text-gray-100">
+                    {file.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {error && (
+            <div className="text-red-500 mt-4 bg-red-50 p-3 rounded border border-red-200">
+              {error}
+            </div>
+          )}
+
+          {uploadResult && <ResultsTable results={uploadResult} />}
+        </>
+      )}
     </div>
   );
 };

@@ -17,6 +17,7 @@ import PostOfficeNotification from "./pages/PostOfficeNotification";
 import AdminPostOfficeCheck from "./pages/AdminPostOfficeCheck";
 import AdminAccess from "./pages/AdminAccess";
 import AdminNotifications from "./pages/AdminNotifications";
+import AdminUserFeedback from "./pages/AdminUserFeedback";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         <Route path="/adminMonitoring" element={<AdminMonitoring />} />
         <Route path="/adminPostOfficeCheck" element={<AdminPostOfficeCheck />} />
         <Route path="/adminNotifications" element={<AdminNotifications />} />
+        <Route path="/adminFeedbackRequests" element={<AdminUserFeedback />} />
         <Route path="/adminAccess" element={<AdminAccess />} />
       </Route>
 

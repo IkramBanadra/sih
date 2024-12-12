@@ -58,7 +58,7 @@ const Navigation = () => {
 
       <div
         className={`fixed top-16 left-0 right-0 mx-auto 
-          w-[90%] bg-white/90 dark:bg-gray-800/90 
+          w-[90%] bg-white/90 dark:bg-gray-100/90 
           shadow-lg p-4 rounded-xl 
           transition-all duration-300 ease-in-out
           ${mobileMenuOpen ? "block" : "hidden"}`}
@@ -71,11 +71,11 @@ const Navigation = () => {
               whileTap={{ scale: 0.95 }}
               onClick={() => scrollToSection(section)}
               className={`capitalize 
-                text-gray-600 dark:text-gray-300 
-                hover:text-gray-900 dark:hover:text-white 
+                text-gray-600 dark:text-gray-700 
+                hover:text-gray-900 dark:hover:text-black 
                 transition w-full text-center 
                 rounded-lg py-2 px-4 
-                hover:bg-gray-100 dark:hover:bg-gray-700 
+                hover:bg-gray-100 dark:hover:bg-gray-300 
                 ${
                   activeSection === section
                     ? "font-bold text-blue-600 dark:text-blue-400"
@@ -92,11 +92,12 @@ const Navigation = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleDashboardNavigation}
-                className="capitalize text-gray-600 dark:text-gray-300 
-                  hover:text-gray-900 dark:hover:text-white 
+                className="capitalize 
+                text-gray-600 dark:text-gray-700 
+                hover:text-gray-900 dark:hover:text-black 
                   transition w-full text-center 
                   rounded-lg py-2 px-4 
-                  hover:bg-gray-100 dark:hover:bg-gray-700"
+                  hover:bg-gray-100 dark:hover:bg-gray-300"
               >
                 Dashboard
               </motion.button>
@@ -104,11 +105,12 @@ const Navigation = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleSignOut}
-                className="capitalize text-gray-600 dark:text-gray-300 
-                  hover:text-gray-900 dark:hover:text-white 
+                className="capitalize 
+                text-gray-600 dark:text-gray-700 
+                hover:text-gray-900 dark:hover:text-black 
                   transition w-full text-center 
                   rounded-lg py-2 px-4 
-                  hover:bg-gray-100 dark:hover:bg-gray-700"
+                  hover:bg-gray-100 dark:hover:bg-gray-300"
               >
                 Sign Out
               </motion.button>
@@ -122,11 +124,12 @@ const Navigation = () => {
                   navigate("/accessReq");
                   setMobileMenuOpen(false);
                 }}
-                className="capitalize text-gray-600 dark:text-gray-300 
-                  hover:text-gray-900 dark:hover:text-white 
+                className="capitalize 
+                text-gray-600 dark:text-gray-700 
+                hover:text-gray-900 dark:hover:text-black  
                   transition w-full text-center 
                   rounded-lg py-2 px-4 
-                  hover:bg-gray-100 dark:hover:bg-gray-700"
+                  hover:bg-gray-100 dark:hover:bg-gray-300"
               >
                 Request Access
               </motion.button>
@@ -137,11 +140,12 @@ const Navigation = () => {
                   navigate("/postOfficeLogin");
                   setMobileMenuOpen(false);
                 }}
-                className="capitalize text-gray-600 dark:text-gray-300 
-                  hover:text-gray-900 dark:hover:text-white 
+                className="capitalize 
+                text-gray-600 dark:text-gray-700 
+                hover:text-gray-900 dark:hover:text-black 
                   transition w-full text-center 
                   rounded-lg py-2 px-4 
-                  hover:bg-gray-100 dark:hover:bg-gray-700"
+                  hover:bg-gray-100 dark:hover:bg-gray-300"
               >
                 Post Office Login
               </motion.button>
@@ -152,11 +156,12 @@ const Navigation = () => {
                   navigate("/adminLogin");
                   setMobileMenuOpen(false);
                 }}
-                className="capitalize text-gray-600 dark:text-gray-300 
-                  hover:text-gray-900 dark:hover:text-white 
+                className="capitalize 
+                text-gray-600 dark:text-gray-700 
+                hover:text-gray-900 dark:hover:text-black 
                   transition w-full text-center 
                   rounded-lg py-2 px-4 
-                  hover:bg-gray-100 dark:hover:bg-gray-700"
+                  hover:bg-gray-100 dark:hover:bg-gray-300"
               >
                 Admin Login
               </motion.button>

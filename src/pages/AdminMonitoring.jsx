@@ -8,6 +8,7 @@ import {
   Mail,
   User,
   AlertCircleIcon,
+  MessageCircle,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -46,6 +47,13 @@ const SIDEBAR_ITEMS = [
     href: "/adminNotifications",
   },
   { name: "Admin Access", icon: User, color: "#6EE7B7", href: "/adminAccess" },
+
+  {
+    name: "User Feedback",
+    icon: MessageCircle,
+    color: "#6EE7B7",
+    href: "/adminFeedbackRequests",
+  },
   { name: "Home", icon: Home, color: "#D9924C", href: "/" },
 ];
 

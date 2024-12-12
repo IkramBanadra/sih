@@ -7,6 +7,7 @@ import {
   Mail,
   User,
   AlertCircleIcon,
+  MessageCircle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -55,12 +56,20 @@ const SIDEBAR_ITEMS = [
     href: "/adminNotifications",
   },
   { name: "Admin Access", icon: User, color: "#6EE7B7", href: "/adminAccess" },
+
+  {
+    name: "User Feedback",
+    icon: MessageCircle,
+    color: "#6EE7B7",
+    href: "/adminFeedbackRequests",
+  },
   { name: "Home", icon: Home, color: "#D9924C", href: "/" },
 ];
 
 const generatePassword = () => {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
   for (let i = 0; i < 6; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
@@ -96,19 +105,19 @@ const AdminUsersDashboard = () => {
 
       const postRequestWithPassword = {
         ...request,
-        pass: generatedPassword
+        pass: generatedPassword,
       };
 
       await addDoc(collection(db, "post"), postRequestWithPassword);
-      
+
       await deleteDoc(doc(db, "post_office_requests", request.id));
-      
+
       setRequests(requests.filter((req) => req.id !== request.id));
-      
+
       Swal.fire({
         title: "Success",
         html: `Request approved and moved to post collection.<br>Generated Password: <strong>${generatedPassword}</strong>`,
-        icon: "success"
+        icon: "success",
       });
     } catch (error) {
       console.error("Error processing request: ", error);
@@ -183,7 +192,9 @@ const AdminUsersDashboard = () => {
           <div className="w-full">
             {requests.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-96">
-                <p className="text-2xl text-gray-300">No Post Office is requesting access</p>
+                <p className="text-2xl text-gray-300">
+                  No Post Office is requesting access
+                </p>
                 <svg
                   className="mt-4 w-24 h-24 text-indigo-500"
                   fill="currentColor"
@@ -195,7 +206,10 @@ const AdminUsersDashboard = () => {
             ) : (
               <div className="flex flex-wrap justify-center gap-4">
                 {requests.map((request) => (
-                  <div key={request.id} className="w-[90%] md:w-[90%] lg:w-[90%]">
+                  <div
+                    key={request.id}
+                    className="w-[90%] md:w-[90%] lg:w-[90%]"
+                  >
                     <div className="bg-indigo-600 shadow-lg rounded-lg">
                       <div className="px-6 py-5">
                         <div className="flex items-start">

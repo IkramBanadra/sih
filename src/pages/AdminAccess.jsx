@@ -1,14 +1,29 @@
-import { BarChart2, Menu, TrendingUp, Monitor, Home, Mail, User, X, Copy, AlertCircleIcon } from "lucide-react";
+import {
+  BarChart2,
+  Menu,
+  TrendingUp,
+  Monitor,
+  Home,
+  Mail,
+  User,
+  X,
+  Copy,
+  AlertCircleIcon,
+  Link as LinkIcon,
+  MessageCircle,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { 
-  collection, 
-  query, 
-  getDocs, 
+import {
+  collection,
+  query,
+  getDocs,
   addDoc,
   deleteDoc,
-  doc
+  doc,
+  getDoc,
+  setDoc,
 } from "firebase/firestore";
 import Swal from "sweetalert2";
 import db from "../firebaseConfig";
@@ -46,12 +61,19 @@ const SIDEBAR_ITEMS = [
     href: "/adminNotifications",
   },
   { name: "Admin Access", icon: User, color: "#6EE7B7", href: "/adminAccess" },
+  {
+    name: "User Feedback",
+    icon: MessageCircle,
+    color: "#6EE7B7",
+    href: "/adminFeedbackRequests",
+  },
   { name: "Home", icon: Home, color: "#D9924C", href: "/" },
 ];
 
 const generateRandomPassword = () => {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
-  let result = '';
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+  let result = "";
   for (let i = 0; i < 6; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
@@ -62,6 +84,7 @@ const AdminAccess = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [tunnelUrl, setTunnelUrl] = useState("");
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [generatedPassword, setGeneratedPassword] = useState("");
@@ -71,21 +94,21 @@ const AdminAccess = () => {
       const adminRef = collection(db, "admin");
       const q = query(adminRef);
       const querySnapshot = await getDocs(q);
-      
-      const adminList = querySnapshot.docs.map(doc => ({
+
+      const adminList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
-      
+
       setAdmins(adminList);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching admins:", error);
       setLoading(false);
       Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Failed to fetch admin data',
+        icon: "error",
+        title: "Oops...",
+        text: "Failed to fetch admin data",
       });
     }
   };
@@ -94,14 +117,37 @@ const AdminAccess = () => {
     fetchAdmins();
   }, []);
 
+  const fetchTunnelUrl = async () => {
+    try {
+      const tunnelDocRef = doc(db, "ml_model_tunnel", "tunnel_url");
+      const tunnelDoc = await getDoc(tunnelDocRef);
+
+      if (tunnelDoc.exists()) {
+        setTunnelUrl(tunnelDoc.data().url || "");
+      }
+    } catch (error) {
+      console.error("Error fetching tunnel URL:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Failed to fetch tunnel URL",
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchAdmins();
+    fetchTunnelUrl();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!name.trim() || !email.trim()) {
       Swal.fire({
-        icon: 'warning',
-        title: 'Incomplete Information',
-        text: 'Please fill in both name and email',
+        icon: "warning",
+        title: "Incomplete Information",
+        text: "Please fill in both name and email",
       });
       return;
     }
@@ -111,15 +157,15 @@ const AdminAccess = () => {
       setGeneratedPassword(password);
 
       const adminRef = collection(db, "admin");
-      await addDoc(adminRef, { 
-        name, 
-        email, 
-        pass: password 
+      await addDoc(adminRef, {
+        name,
+        email,
+        pass: password,
       });
 
       await Swal.fire({
-        icon: 'success',
-        title: 'Admin Added',
+        icon: "success",
+        title: "Admin Added",
         html: `
           <p>New admin has been successfully added.</p>
           <div class="mt-4 bg-gray-100 p-3 rounded">
@@ -131,7 +177,7 @@ const AdminAccess = () => {
           </div>
           <small class="text-red-500">Please securely share this password with the admin.</small>
         `,
-        confirmButtonText: 'Close'
+        confirmButtonText: "Close",
       });
 
       setName("");
@@ -141,9 +187,9 @@ const AdminAccess = () => {
     } catch (error) {
       console.error("Error adding admin:", error);
       Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Failed to add admin',
+        icon: "error",
+        title: "Oops...",
+        text: "Failed to add admin",
       });
     }
   };
@@ -151,13 +197,13 @@ const AdminAccess = () => {
   const copyPasswordToClipboard = (password) => {
     navigator.clipboard.writeText(password);
     Swal.fire({
-      icon: 'success',
-      title: 'Copied!',
-      text: 'Password copied to clipboard',
+      icon: "success",
+      title: "Copied!",
+      text: "Password copied to clipboard",
       toast: true,
-      position: 'top-end',
+      position: "top-end",
       showConfirmButton: false,
-      timer: 2000
+      timer: 2000,
     });
   };
 
@@ -169,16 +215,56 @@ const AdminAccess = () => {
       fetchAdmins();
 
       Swal.fire({
-        icon: 'success',
-        title: 'Admin Removed',
-        text: 'Admin has been successfully removed',
+        icon: "success",
+        title: "Admin Removed",
+        text: "Admin has been successfully removed",
       });
     } catch (error) {
       console.error("Error deleting admin:", error);
       Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Failed to remove admin',
+        icon: "error",
+        title: "Oops...",
+        text: "Failed to remove admin",
+      });
+    }
+  };
+
+  const handleTunnelUrlSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!tunnelUrl.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Invalid Input",
+        text: "Please enter a valid tunnel URL",
+      });
+      return;
+    }
+
+    try {
+      const tunnelDocRef = doc(db, "ml_model_tunnel", "tunnel_url");
+
+      await setDoc(
+        tunnelDocRef,
+        {
+          url: tunnelUrl.trim(),
+          updatedAt: new Date(),
+        },
+        { merge: true }
+      );
+
+      Swal.fire({
+        icon: "success",
+        title: "Tunnel URL Updated",
+        text: "The Nugrock tunnel URL has been successfully updated",
+        confirmButtonText: "Close",
+      });
+    } catch (error) {
+      console.error("Error updating tunnel URL:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Failed to update tunnel URL",
       });
     }
   };
@@ -236,18 +322,59 @@ const AdminAccess = () => {
 
       <div className="flex-1 overflow-auto relative z-10">
         <Header title="Admin Access Management" />
-        
-        <div className="grid md:grid-cols-2 gap-8" style={{margin: '25px'}}>
-          <motion.div 
+
+        <div className="grid md:grid-cols-2 gap-8" style={{ margin: "25px" }}>
+          <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
             className="bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700"
           >
-            <h2 className="text-2xl font-bold mb-6 text-white">Create Admin Access</h2>
+            <h2 className="text-2xl font-bold mb-6 text-white flex items-center">
+              <LinkIcon className="mr-2" size={24} />
+              ML Model Tunnel URL
+            </h2>
+            <form onSubmit={handleTunnelUrlSubmit} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="tunnelUrl"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
+                  Nugrock Tunnel URL
+                </label>
+                <input
+                  type="url"
+                  id="tunnelUrl"
+                  value={tunnelUrl}
+                  onChange={(e) => setTunnelUrl(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-white"
+                  placeholder="Enter Nugrock tunnel URL"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg transition-colors"
+              >
+                Update Tunnel URL
+              </button>
+            </form>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700"
+          >
+            <h2 className="text-2xl font-bold mb-6 text-white">
+              Create Admin Access
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
                   Name
                 </label>
                 <input
@@ -260,7 +387,10 @@ const AdminAccess = () => {
                 />
               </div>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
                   Email
                 </label>
                 <input
@@ -287,7 +417,9 @@ const AdminAccess = () => {
             transition={{ duration: 0.5 }}
             className="bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700"
           >
-            <h2 className="text-2xl font-bold mb-6 text-white">Current Admins</h2>
+            <h2 className="text-2xl font-bold mb-6 text-white">
+              Current Admins
+            </h2>
             {loading ? (
               <div className="flex justify-center items-center h-full">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -305,10 +437,14 @@ const AdminAccess = () => {
                     className="bg-gray-700 rounded-lg p-4 flex justify-between items-center hover:bg-gray-600 transition-colors"
                   >
                     <div>
-                      <h3 className="text-lg font-semibold text-white">{admin.name}</h3>
+                      <h3 className="text-lg font-semibold text-white">
+                        {admin.name}
+                      </h3>
                       <p className="text-sm text-gray-400">{admin.email}</p>
                       <div className="flex items-center mt-1">
-                        <span className="text-xs text-gray-500 mr-2">Password: ●●●●●●</span>
+                        <span className="text-xs text-gray-500 mr-2">
+                          Password: ●●●●●●
+                        </span>
                         <button
                           onClick={() => copyPasswordToClipboard(admin.pass)}
                           className="text-blue-400 hover:text-blue-500 transition-colors"
